@@ -1,24 +1,21 @@
-"""Command line interface for the ArenaHost."""
+"""Command line interface for the HexMazeInterface."""
 import click
 import os
 
-from .arena_interface import ArenaInterface
+from .hex_maze_interface import HexMazeInterface
 
-interface = ArenaInterface()
+interface = HexMazeInterface()
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.command(context_settings=CONTEXT_SETTINGS,
-               no_args_is_help=True)
-@click.option('-i', '--ip-address',
-              default=None,
-              help='ArenaController IP address')
-def cli(ip_address):
-    """Command line interface to the Reiser lab ArenaController."""
+@click.command(context_settings=CONTEXT_SETTINGS)
+def cli():
+    """Command line interface to the Voigts lab hex maze."""
     clear_screen()
-    interface.connect(ip_address)
+    interface.connect()
+    interface.send_hello_world()
 
 def clear_screen():
     """Clear command line for various operating systems."""

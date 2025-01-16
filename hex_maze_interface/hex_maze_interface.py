@@ -3,14 +3,16 @@ import socket
 import atexit
 
 
-class ArenaInterface():
-    """Python interface to the Reiser lab ArenaController."""
-    PORT = 62222
+class HexMazeInterface():
+    """Python interface to the Voigts lab hex maze."""
+    IP_ADDRESS = "192.168.10.216"
+    PORT = 7777
     def __init__(self, sock=None, debug=True):
-        """Initialize a ArenaHost instance."""
+        """Initialize a HexMazeInterface instance."""
         self._debug = debug
         if sock is None:
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket = socket.socket(socket.AF_INET,
+                                         socket.SOCK_STREAM)
         else:
             self._socket = sock
         atexit.register(self._exit)
@@ -27,23 +29,19 @@ class ArenaInterface():
         """Send message."""
         if self._socket:
             totalsent = 0
-            while totalsent < MSGLEN:
+            while totalsent < len(msg):
                 sent = self._socket.send(msg[totalsent:])
                 if sent == 0:
                     raise RuntimeError("socket connection broken")
                 totalsent = totalsent + sent
 
-    def connect(self, ip_address):
+    def connect(self):
         """Connect to server at ip address."""
-        self._debug_print('ArenaHost connecting...')
-        self._socket.connect((ip_address, self.PORT))
-        self._debug_print('ArenaHost connected')
+        self._debug_print('HexMazeInterface connecting...')
+        self._socket.connect((self.IP_ADDRESS, self.PORT))
+        self._debug_print('HexMazeInterface connected')
 
-    def all_on(self):
-        """Turn all panels on."""
-        self._send(b'\x01\xff')
-
-    def all_off(self):
-        """Turn all panels off."""
-        self._send(b'\x01\x00')
+    def send_hello_world(self):
+        """Send test message."""
+        self._send(b"Hello, World!")
 
