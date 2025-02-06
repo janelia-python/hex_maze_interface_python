@@ -5,7 +5,6 @@ import atexit
 
 class HexMazeInterface():
     """Python interface to the Voigts lab hex maze."""
-    IP_ADDRESS = "192.168.10.216"
     PORT = 7777
     def __init__(self, sock=None, debug=True):
         """Initialize a HexMazeInterface instance."""
@@ -35,13 +34,24 @@ class HexMazeInterface():
                     raise RuntimeError("socket connection broken")
                 totalsent = totalsent + sent
 
-    def connect(self):
+    def connect(self, ip_address):
         """Connect to server at ip address."""
         self._debug_print('HexMazeInterface connecting...')
-        self._socket.connect((self.IP_ADDRESS, self.PORT))
+        self._socket.connect((ip_address, self.PORT))
+        self._debug_print('HexMazeInterface connected')
+
+    def disconnect(self, ip_address):
+        """Shutdown and close socket connect at ip address."""
+        self._debug_print('HexMazeInterface disconnecting connecting...')
+        self._socket.shutdown()
+        self._socket.close()
         self._debug_print('HexMazeInterface connected')
 
     def send_hello_world(self):
         """Send test message."""
         self._send(b"Hello, World!")
 
+    def send_led_on(self):
+        """Send LED_ON message."""
+        message = "LED_ON"
+        self._socket.sendall(message.encode())
