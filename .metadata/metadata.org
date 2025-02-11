@@ -42,11 +42,13 @@ Python interface to the Voigts lab hex maze.
 #+NAME: python-dependencies
 #+BEGIN_SRC text :exports none :noweb yes
 click
+python3-nmap
 #+END_SRC
 
 #+NAME: guix-dependencies
 #+BEGIN_SRC text :exports none :noweb yes
 python-click
+python-nmap
 #+END_SRC
 
 #+NAME: command-line-interface
@@ -413,13 +415,13 @@ exit
         (url "https://github.com/guix-janelia/guix-janelia.git")
         (branch "main")
         (commit
-          "6d2cb9cdd679f90c1a4fb02af02d2d1cfe2fcca6"))
+          "00269482830083a52441bbacda39e1fb70fb017f"))
       (channel
         (name 'guix)
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "d0268d5b7ff4c5bac0ac2e25bc371ba5c950d12a")
+          "0bf82b3fd5fcca2baef872ee06b40995cfbba7df")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -444,7 +446,8 @@ exit
  (gnu packages python-xyz)
  (gnu packages imagemagick)
  (gnu packages version-control)
- (gnu packages ncurses))
+ (gnu packages ncurses)
+ (guix-janelia packages python-xyz))
 
 (define %source-dir (dirname (dirname (dirname (current-filename)))))
 
@@ -465,7 +468,7 @@ exit
                          python-twine
                          python-ipython
                          imagemagick
-                         nmap))
+                         python-nmap))
     (propagated-inputs (list
                         ncurses
                         <<guix-dependencies>>))

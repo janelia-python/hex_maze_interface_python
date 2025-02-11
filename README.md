@@ -1,13 +1,13 @@
-- [About](#orga0ebd2e)
-- [Example Usage](#orgaae59f5)
-- [Installation](#org94e1a91)
-- [Development](#org79d6010)
+- [About](#orgf52da95)
+- [Example Usage](#org462cf80)
+- [Installation](#orgfa6aab1)
+- [Development](#orgbe0bf44)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orga0ebd2e"></a>
+<a id="orgf52da95"></a>
 
 # About
 
@@ -16,7 +16,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 0.1.0
 - Python Version: 3.10
-- Release Date: 2025-01-16
+- Release Date: 2025-02-11
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -29,10 +29,11 @@
   - https://github.com/janelia-arduino/ClusterController
 - Dependencies:
   - click
+  - python3-nmap
 ```
 
 
-<a id="orgaae59f5"></a>
+<a id="org462cf80"></a>
 
 # Example Usage
 
@@ -63,7 +64,7 @@ hex-maze-interface --help
 ```
 
 
-<a id="org94e1a91"></a>
+<a id="orgfa6aab1"></a>
 
 # Installation
 
@@ -93,6 +94,7 @@ iface eth1 inet static
 
 ```sh
 nmap -sn 192.168.10.0/24
+nmap -p 7777 192.168.10.3
 ```
 
 
@@ -177,7 +179,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org79d6010"></a>
+<a id="orgbe0bf44"></a>
 
 # Development
 

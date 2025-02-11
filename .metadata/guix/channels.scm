@@ -5,13 +5,13 @@
         (url "https://github.com/guix-janelia/guix-janelia.git")
         (branch "main")
         (commit
-          "6d2cb9cdd679f90c1a4fb02af02d2d1cfe2fcca6"))
+          "00269482830083a52441bbacda39e1fb70fb017f"))
       (channel
         (name 'guix)
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "d0268d5b7ff4c5bac0ac2e25bc371ba5c950d12a")
+          "0bf82b3fd5fcca2baef872ee06b40995cfbba7df")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
