@@ -43,11 +43,13 @@ Python interface to the Voigts lab hex maze.
 #+BEGIN_SRC text :exports none :noweb yes
 click
 python3-nmap
+serial-interface
 #+END_SRC
 
 #+NAME: guix-dependencies
 #+BEGIN_SRC text :exports none :noweb yes
 python-click
+python-serial-interface
 python-nmap
 #+END_SRC
 
@@ -415,13 +417,13 @@ exit
         (url "https://github.com/guix-janelia/guix-janelia.git")
         (branch "main")
         (commit
-          "00269482830083a52441bbacda39e1fb70fb017f"))
+          "a352a5115a8e44000e766fc3f566369f58092c8b"))
       (channel
         (name 'guix)
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "0bf82b3fd5fcca2baef872ee06b40995cfbba7df")
+          "d88d271de774b785c49c0e554231f65336067275")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -447,7 +449,8 @@ exit
  (gnu packages imagemagick)
  (gnu packages version-control)
  (gnu packages ncurses)
- (guix-janelia packages python-xyz))
+ (guix-janelia packages python-xyz)
+ (guix-janelia packages python-janelia))
 
 (define %source-dir (dirname (dirname (dirname (current-filename)))))
 
@@ -510,12 +513,6 @@ WORKDIR /<<repository-name>>
 RUN pip install --user .
 
 CMD ["bash"]
-#+END_SRC
-
-#+BEGIN_SRC text :tangle .alias :exports none :noweb yes
-# This file is generated automatically from metadata.org
-# File edits may be overwritten!
-alias ,make=make\ -f\ .metadata/Makefile
 #+END_SRC
 
 #+BEGIN_SRC text :tangle ../Makefile :exports none :noweb yes
