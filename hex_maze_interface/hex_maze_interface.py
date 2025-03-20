@@ -2,6 +2,8 @@
 import socket
 import atexit
 import nmap3
+from serial_interface import SerialInterface, find_serial_interface_ports
+
 
 PORT = 7777
 IP_RANGE = '192.168.10.0/24'
@@ -61,6 +63,12 @@ class HexMazeInterface():
         self._cluster_ip_addresses = list(filtered_results.keys())
         return self._cluster_ip_addresses
 
+    def find_serial_ports(self):
+        return find_serial_interface_ports()
+
+    def connect_serial(self):
+        self.si = SerialInterface()
+
     def get_cluster_address_map(self):
         if self._cluster_ip_addresses is None:
             self.discover_cluster_ip_addresses()
@@ -88,7 +96,12 @@ class HexMazeInterface():
         """Send test message."""
         self._send(b"Hello, World!")
 
-    def send_led_on(self):
+    def led_on(self):
+        """Send LED_ON message."""
+        message = "LED_ON"
+        self._socket.sendall(message.encode())
+
+    def led_on_str(self):
         """Send LED_ON message."""
         message = "LED_ON"
         self._socket.sendall(message.encode())

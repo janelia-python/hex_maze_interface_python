@@ -27,6 +27,25 @@ def get_cluster_address_map(hmi):
     cluster_address_map = hmi.get_cluster_address_map()
     print(cluster_address_map)
 
+@cli.command()
+@click.pass_obj
+def find_serial_ports(hmi):
+    print(hmi.find_serial_ports())
+
+@cli.command()
+@click.pass_obj
+def connect_serial(hmi):
+    print(hmi.connect_serial())
+
+@cli.command()
+@click.pass_obj
+def led_on_str(hmi):
+    hmi.led_on_str()
+
+@cli.command()
+@click.pass_obj
+def led_off_str(hmi):
+    hmi.led_off_str()
 
 # interface = HexMazeInterface()
 

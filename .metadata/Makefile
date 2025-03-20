@@ -74,11 +74,11 @@ add:
 clean:
 	$(GUIX-DEV-CONTAINER) -- sh -c "git clean -xdf"
 
-PORT = /dev/ttyACM0
-GUIX-DEV-CONTAINER-PORT = $(GUIX-DEV-SHELL) $(CONTAINER) --expose=$(PORT)
-GUIX-CONTAINER-PORT = $(GUIX-SHELL) $(CONTAINER) --expose=$(PORT)
-DOCKER-DEV-CONTAINER-PORT = $(DOCKER-DEV-IMAGE); docker run -it --device=$(PORT) hex_maze_interface-dev
-DOCKER-CONTAINER-PORT = $(DOCKER-IMAGE); docker run -it --device=$(PORT) hex_maze_interface
+PORT-DIR = /dev/
+GUIX-DEV-CONTAINER-PORT = $(GUIX-DEV-SHELL) $(CONTAINER) --expose=$(PORT-DIR)
+GUIX-CONTAINER-PORT = $(GUIX-SHELL) $(CONTAINER) --expose=$(PORT-DIR)
+DOCKER-DEV-CONTAINER-PORT = $(DOCKER-DEV-IMAGE); docker run -it --device=$(PORT-DIR) hex_maze_interface-dev
+DOCKER-CONTAINER-PORT = $(DOCKER-IMAGE); docker run -it --device=$(PORT-DIR) hex_maze_interface
 
 .PHONY: guix-dev-container-port-serial
 guix-dev-container-port-serial:

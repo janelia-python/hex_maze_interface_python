@@ -1,13 +1,13 @@
-- [About](#orge94c495)
-- [Example Usage](#orgf86a682)
-- [Installation](#org05fa0b5)
-- [Development](#orgb11112a)
+- [About](#orgb750940)
+- [Example Usage](#orge6c19a0)
+- [Installation](#org984d13a)
+- [Development](#orgddac188)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orge94c495"></a>
+<a id="orgb750940"></a>
 
 # About
 
@@ -34,7 +34,7 @@
 ```
 
 
-<a id="orgf86a682"></a>
+<a id="orge6c19a0"></a>
 
 # Example Usage
 
@@ -65,7 +65,7 @@ hex-maze-interface --help
 ```
 
 
-<a id="org05fa0b5"></a>
+<a id="org984d13a"></a>
 
 # Installation
 
@@ -180,7 +180,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgb11112a"></a>
+<a id="orgddac188"></a>
 
 # Development
 

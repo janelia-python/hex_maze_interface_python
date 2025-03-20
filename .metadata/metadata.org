@@ -417,13 +417,13 @@ exit
         (url "https://github.com/guix-janelia/guix-janelia.git")
         (branch "main")
         (commit
-          "a352a5115a8e44000e766fc3f566369f58092c8b"))
+          "f0515b13bc942a5883f03832d347b19476c2e329"))
       (channel
         (name 'guix)
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "d88d271de774b785c49c0e554231f65336067275")
+          "e12455a5e8d524c5c3fba1ae56ebc6819b4f9320")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -598,11 +598,11 @@ add:
 clean:
 	$(GUIX-DEV-CONTAINER) -- sh -c "git clean -xdf"
 
-PORT = /dev/ttyACM0
-GUIX-DEV-CONTAINER-PORT = $(GUIX-DEV-SHELL) $(CONTAINER) --expose=$(PORT)
-GUIX-CONTAINER-PORT = $(GUIX-SHELL) $(CONTAINER) --expose=$(PORT)
-DOCKER-DEV-CONTAINER-PORT = $(DOCKER-DEV-IMAGE); docker run -it --device=$(PORT) <<python-package-name>>-dev
-DOCKER-CONTAINER-PORT = $(DOCKER-IMAGE); docker run -it --device=$(PORT) <<python-package-name>>
+PORT-DIR = /dev/
+GUIX-DEV-CONTAINER-PORT = $(GUIX-DEV-SHELL) $(CONTAINER) --expose=$(PORT-DIR)
+GUIX-CONTAINER-PORT = $(GUIX-SHELL) $(CONTAINER) --expose=$(PORT-DIR)
+DOCKER-DEV-CONTAINER-PORT = $(DOCKER-DEV-IMAGE); docker run -it --device=$(PORT-DIR) <<python-package-name>>-dev
+DOCKER-CONTAINER-PORT = $(DOCKER-IMAGE); docker run -it --device=$(PORT-DIR) <<python-package-name>>
 
 .PHONY: guix-dev-container-port-serial
 guix-dev-container-port-serial:
