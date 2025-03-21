@@ -7,6 +7,7 @@ from serial_interface import SerialInterface, find_serial_interface_ports
 
 PORT = 7777
 IP_RANGE = '192.168.10.0/24'
+SERIAL_BAUDRATE = 115200
 
 def results_filter(pair):
     key, value = pair
@@ -29,26 +30,27 @@ class HexMazeInterface():
         self._clusters = None
         self._cluster_ip_addresses = None
         self._nmap = nmap3.NmapHostDiscovery()
-        # if sock is None:
-        #     self._socket = socket.socket(socket.AF_INET,
-        #                                  socket.SOCK_STREAM)
-        # else:
-        #     self._socket = sock
+        self._socket = None
+        self._serial_interface = None
         atexit.register(self._exit)
 
     def _exit(self):
-        pass
-        # if self._sockets is not None:
-        #     for socket in self._sockets:
-        #         socket.close()
+        try:
+            self._socket.close()
+        except AttributeError:
+            pass
+        try:
+            self._serial_interface.close()
+        except AttributeError:
+            pass
 
-    def _debug_print(self, to_print):
+    def _debug_print(self, *args):
         """Print if debug is True."""
         if self._debug:
-            print(to_print)
+            print(*args)
 
     def _send(self, msg):
-        """Send message."""
+        """Send message and receive response."""
         if self._socket:
             totalsent = 0
             while totalsent < len(msg):
