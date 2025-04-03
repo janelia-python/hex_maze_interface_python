@@ -37,11 +37,10 @@
                          python-twine
                          python-ipython
                          imagemagick
-                         python-nmap))
+                         nmap))
     (propagated-inputs (list
                         ncurses
                         python-click
-                        python-serial-interface
                         python-nmap))
     (home-page "")
     (synopsis "")

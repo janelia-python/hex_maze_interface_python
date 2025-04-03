@@ -1,13 +1,13 @@
-- [About](#orgb750940)
-- [Example Usage](#orge6c19a0)
-- [Installation](#org984d13a)
-- [Development](#orgddac188)
+- [About](#org4504905)
+- [Example Usage](#org0150831)
+- [Installation](#orge083f88)
+- [Development](#org1c7e6f0)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgb750940"></a>
+<a id="org4504905"></a>
 
 # About
 
@@ -16,7 +16,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 0.1.0
 - Python Version: 3.10
-- Release Date: 2025-03-20
+- Release Date: 2025-04-03
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -30,11 +30,10 @@
 - Dependencies:
   - click
   - python3-nmap
-  - serial-interface
 ```
 
 
-<a id="orge6c19a0"></a>
+<a id="org0150831"></a>
 
 # Example Usage
 
@@ -65,7 +64,7 @@ hex-maze-interface --help
 ```
 
 
-<a id="org984d13a"></a>
+<a id="orge083f88"></a>
 
 # Installation
 
@@ -96,6 +95,16 @@ iface eth1 inet static
 ```sh
 nmap -sn 192.168.10.0/24
 nmap -p 7777 192.168.10.3
+nmap -sV -p 7777 192.168.10.0/24
+```
+
+```sh
+sudo -E guix shell nmap
+sudo -E guix shell wireshark -- wireshark
+```
+
+```sh
+make guix-container
 ```
 
 
@@ -180,7 +189,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgddac188"></a>
+<a id="org1c7e6f0"></a>
 
 # Development
 

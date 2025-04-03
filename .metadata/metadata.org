@@ -43,13 +43,11 @@ Python interface to the Voigts lab hex maze.
 #+BEGIN_SRC text :exports none :noweb yes
 click
 python3-nmap
-serial-interface
 #+END_SRC
 
 #+NAME: guix-dependencies
 #+BEGIN_SRC text :exports none :noweb yes
 python-click
-python-serial-interface
 python-nmap
 #+END_SRC
 
@@ -230,6 +228,16 @@ iface eth1 inet static
 #+BEGIN_SRC sh
 nmap -sn 192.168.10.0/24
 nmap -p 7777 192.168.10.3
+nmap -sV -p 7777 192.168.10.0/24
+#+END_SRC
+
+#+BEGIN_SRC sh
+sudo -E guix shell nmap
+sudo -E guix shell wireshark -- wireshark
+#+END_SRC
+
+#+BEGIN_SRC sh
+make guix-container
 #+END_SRC
 
 *** Serial
@@ -423,7 +431,7 @@ exit
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "e12455a5e8d524c5c3fba1ae56ebc6819b4f9320")
+          "efac1498c15198afc4f9a2bc700408bde1b3b3ed")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -471,7 +479,7 @@ exit
                          python-twine
                          python-ipython
                          imagemagick
-                         python-nmap))
+                         nmap))
     (propagated-inputs (list
                         ncurses
                         <<guix-dependencies>>))
