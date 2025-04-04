@@ -11,7 +11,6 @@ def results_filter(pair):
     key, value = pair
     try:
         ports = value['ports']
-
         for port in ports:
             if port['portid'] == str(PORT) and port['state'] == 'open':
                 return True

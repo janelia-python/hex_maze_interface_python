@@ -12,7 +12,7 @@ def cli(ctx):
 
 @cli.command()
 @click.pass_obj
-def discover_cluster_ip_addresses(hmi):
+def discover(hmi):
     cluster_ip_addresses = hmi.discover_cluster_ip_addresses()
     print(cluster_ip_addresses)
 
