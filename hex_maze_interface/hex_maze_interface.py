@@ -120,8 +120,16 @@ class HexMazeInterface():
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
-    def power_off(self):
+    def power_off(self, cluster_address):
         """Turn all prisms on."""
+        cmd_num = 0x05
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
 
-    def power_on(self):
+    def power_on(self, cluster_address):
         """Turn all prisms on."""
+        cmd_num = 0x06
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
