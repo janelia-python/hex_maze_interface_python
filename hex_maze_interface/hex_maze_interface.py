@@ -11,6 +11,8 @@ REPEAT_LIMIT = 4
 PROTOCOL_VERSION = 0x01
 ERROR_RESPONSE = 0xEE
 CHECK_COMMUNICATION_RESPONSE = 0x12345678
+CLUSTER_ADDRESS_MIN = 10
+CLUSTER_ADDRESS_MAX = 255
 
 def results_filter(pair):
     key, value = pair
@@ -29,10 +31,9 @@ class HexMazeInterface():
     def __init__(self, debug=True):
         """Initialize a HexMazeInterface instance."""
         self._debug = debug
-        self._clusters = None
-        self._cluster_address_map = {}
         self._nmap = nmap3.NmapHostDiscovery()
         self._socket = None
+        self._cluster_addresses = []
 
     def _debug_print(self, *args):
         """Print if debug is True."""
@@ -56,25 +57,28 @@ class HexMazeInterface():
                 except (TimeoutError, OSError):
                     self._debug_print('socket timed out')
                     repeat_count += 1
-        self._debug_print('rsp: ', rsp.hex())
+        try:
+            self._debug_print('rsp: ', rsp.hex())
+        except AttributeError:
+            pass
         return rsp
 
     def _send_cluster_cmd_receive_rsp(self, cluster_address, cmd):
         ip_address = IP_BASE + str(cluster_address)
         return self._send_ip_cmd_receive_rsp(ip_address, cmd)
 
-    def discover_ip_addresses(self):
+    def _discover_ip_addresses(self):
         results = self._nmap.nmap_portscan_only(IP_RANGE, args=f'-p {PORT}')
         filtered_results = dict(filter(results_filter, results.items()))
         return list(filtered_results.keys())
 
-    def map_cluster_addresses(self):
-        ip_addresses = self.discover_ip_addresses()
-        self._cluster_address_map = {}
+    def discover_cluster_addresses(self):
+        self._cluster_addresses = []
+        ip_addresses = self._discover_ip_addresses()
         for ip_address in ip_addresses:
-            cluster_address = self.read_cluster_address(ip_address)
-            self._cluster_address_map[cluster_address] = ip_address
-        return self._cluster_address_map
+            cluster_address = int(ip_address.split('.')[-1])
+            self._cluster_addresses.append(cluster_address)
+        return self._cluster_addresses
 
     def read_cluster_address(self, ip_address):
         cmd_num = 0x01

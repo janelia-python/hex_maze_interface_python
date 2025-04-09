@@ -13,14 +13,8 @@ def cli(ctx):
 @cli.command()
 @click.pass_obj
 def discover(hmi):
-    ip_addresses = hmi.discover_ip_addresses()
-    print(ip_addresses)
-
-@cli.command()
-@click.pass_obj
-def map(hmi):
-    cluster_address_map = hmi.map_cluster_addresses()
-    print(cluster_address_map)
+    cluster_addresses = hmi.discover_cluster_addresses()
+    print(cluster_addresses)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
