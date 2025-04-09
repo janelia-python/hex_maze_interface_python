@@ -8,7 +8,9 @@ PORT = 7777
 IP_BASE = '192.168.10.'
 IP_RANGE = IP_BASE + '0/24'
 REPEAT_LIMIT = 4
-PROTOCOL_VERSION = b'\x01'
+PROTOCOL_VERSION = 0x01
+ERROR_RESPONSE = 0xEE
+CHECK_COMMUNICATION_RESPONSE = 0x12345678
 
 def results_filter(pair):
     key, value = pair
@@ -37,18 +39,18 @@ class HexMazeInterface():
         if self._debug:
             print(*args)
 
-    def _send_ip_msg_receive_rsp(self, ip_address, msg):
-        """Send message to IP address and receive response."""
+    def _send_ip_cmd_receive_rsp(self, ip_address, cmd):
+        """Send command to IP address and receive response."""
         repeat_count = 0
         rsp = None
-        self._debug_print('msg: ', msg.hex())
+        self._debug_print('cmd: ', cmd.hex())
         while repeat_count < REPEAT_LIMIT:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 self._debug_print(f'to {ip_address} port {PORT}')
                 s.settimeout(2)
                 try:
                     s.connect((ip_address, PORT))
-                    s.sendall(msg)
+                    s.sendall(cmd)
                     rsp = s.recv(1024)
                     break
                 except (TimeoutError, OSError):
@@ -56,10 +58,6 @@ class HexMazeInterface():
                     repeat_count += 1
         self._debug_print('rsp: ', rsp.hex())
         return rsp
-
-    def _send_ip_cmd_receive_rsp(self, ip_address, cmd):
-        msg = PROTOCOL_VERSION + cmd
-        return self._send_ip_msg_receive_rsp(ip_address, msg)
 
     def _send_cluster_cmd_receive_rsp(self, cluster_address, cmd):
         ip_address = IP_BASE + str(cluster_address)
@@ -79,39 +77,44 @@ class HexMazeInterface():
         return self._cluster_address_map
 
     def read_cluster_address(self, ip_address):
-        cmd = b'\x01'
-        rsp = self._send_ip_cmd_receive_rsp(ip_address, cmd)
-        return int(rsp[0])
+        cmd_num = 0x01
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_ip_cmd_receive_rsp(ip_address, cmd))[0]
+        return rsp
 
     def check_communication(self, cluster_address):
         """Check communication with cluster."""
-        cmd = b'\x02'
-        rsp = self._send_cluster_cmd_receive_rsp(cluster_address, cmd)
-        return rsp == b'\x12\x34\x56\x78'
+        cmd_num = 0x02
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<L', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == CHECK_COMMUNICATION_RESPONSE
 
     def no_cmd(self, cluster_address):
         """Send no command to get error response."""
-        cmd = b''
-        rsp = self._send_cluster_cmd_receive_rsp(cluster_address, cmd)
-        return rsp == b'\xEE'
+        cmd = struct.pack('<B', PROTOCOL_VERSION)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == ERROR_RESPONSE
 
     def bad_cmd(self, cluster_address):
         """Send bad command to get error response."""
-        cmd = b'\xEE'
-        rsp = self._send_cluster_cmd_receive_rsp(cluster_address, cmd)
-        return rsp == b'\xEE'
+        cmd_num = ERROR_RESPONSE
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == ERROR_RESPONSE
 
     def reset(self, cluster_address):
         """Reset cluster microcontroller."""
-        cmd = b'\x03'
-        rsp = self._send_cluster_cmd_receive_rsp(cluster_address, cmd)
-        return rsp == cmd
+        cmd_num = 0x03
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
 
     def beep(self, cluster_address, duration_ms):
         """Command cluster to beep for duration."""
-        cmd = struct.pack('<BH', 0x04, duration_ms)
-        rsp = self._send_cluster_cmd_receive_rsp(cluster_address, cmd)
-        return rsp == cmd
+        cmd_num = 0x04
+        cmd = struct.pack('<BBH', PROTOCOL_VERSION, cmd_num, duration_ms)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
 
     def power_off(self):
         """Turn all prisms on."""
