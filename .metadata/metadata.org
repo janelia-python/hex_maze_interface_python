@@ -26,7 +26,7 @@ python-hex-maze-interface
 
 #+NAME: version
 #+BEGIN_SRC text :exports none :noweb yes
-0.1.0
+1.0.0
 #+END_SRC
 
 #+NAME: description
@@ -596,7 +596,7 @@ package:
 
 .PHONY: twine
 twine:
-	$(GUIX-DEV-CONTAINER) --network --expose=$$HOME/.pypirc -- sh -c "twine upload dist/*"
+	$(GUIX-DEV-CONTAINER) --network --expose=$$HOME/.pypirc --expose=/etc/ssl/certs/ca-certificates.crt -- sh -c "twine upload dist/*"
 
 .PHONY: add
 add:

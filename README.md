@@ -1,22 +1,22 @@
-- [About](#org4504905)
-- [Example Usage](#org0150831)
-- [Installation](#orge083f88)
-- [Development](#org1c7e6f0)
+- [About](#org9a6dbb4)
+- [Example Usage](#org70f1ee4)
+- [Installation](#org3cc5916)
+- [Development](#orga99ddda)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org4504905"></a>
+<a id="org9a6dbb4"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 0.1.0
+- Version: 1.0.0
 - Python Version: 3.10
-- Release Date: 2025-04-03
+- Release Date: 2025-04-14
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org0150831"></a>
+<a id="org70f1ee4"></a>
 
 # Example Usage
 
@@ -64,7 +64,7 @@ hex-maze-interface --help
 ```
 
 
-<a id="orge083f88"></a>
+<a id="org3cc5916"></a>
 
 # Installation
 
@@ -95,7 +95,7 @@ iface eth1 inet static
 ```sh
 nmap -sn 192.168.10.0/24
 nmap -p 7777 192.168.10.3
-nmap -sV -p 7777 192.168.10.0/24
+nmap -sV -p 80,7777 192.168.10.0/24
 ```
 
 ```sh
@@ -189,7 +189,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org1c7e6f0"></a>
+<a id="orga99ddda"></a>
 
 # Development
 

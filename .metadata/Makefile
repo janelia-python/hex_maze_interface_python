@@ -64,7 +64,7 @@ package:
 
 .PHONY: twine
 twine:
-	$(GUIX-DEV-CONTAINER) --network --expose=$$HOME/.pypirc -- sh -c "twine upload dist/*"
+	$(GUIX-DEV-CONTAINER) --network --expose=$$HOME/.pypirc --expose=/etc/ssl/certs/ca-certificates.crt -- sh -c "twine upload dist/*"
 
 .PHONY: add
 add:
