@@ -62,6 +62,18 @@ def beep(hmi, cluster_address, duration_ms):
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
+def led_off(hmi, cluster_address):
+    hmi.led_off(cluster_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def led_on(hmi, cluster_address):
+    hmi.led_on(cluster_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
 def power_off(hmi, cluster_address):
     hmi.power_off(cluster_address)
 
