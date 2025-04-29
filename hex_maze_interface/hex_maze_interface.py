@@ -2,6 +2,7 @@
 import socket
 import nmap3
 import struct
+import time
 
 
 PORT = 7777
@@ -120,6 +121,20 @@ class HexMazeInterface():
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
+    def measure_communication(self, cluster_address, repeat_count):
+        time_begin = time.time()
+        for i in range(repeat_count):
+            self.led_on_then_off(cluster_address)
+        time_end = time.time()
+        # led-on-then-off is 2 commands so multiply repeat_count by 2
+        duration = (time_end - time_begin) / (repeat_count * 2)
+        self._debug_print("duration = ", duration)
+        return duration
+
+    def led_on_then_off(self, cluster_address):
+        self.led_on(cluster_address)
+        self.led_off(cluster_address)
+
     def led_off(self, cluster_address):
         """Turn cluster pcb LED off."""
         cmd_num = 0x05
@@ -144,6 +159,20 @@ class HexMazeInterface():
     def power_on(self, cluster_address):
         """Turn on power to all cluster prisms."""
         cmd_num = 0x08
+        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def home_prism(self, cluster_address, prism_address):
+        """Home a single prism in a cluster."""
+        cmd_num = 0x09
+        cmd = struct.pack('<BBB', PROTOCOL_VERSION, cmd_num, prism_address)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def home_all_prisms(self, cluster_address):
+        """Home all prisms in a cluster."""
+        cmd_num = 0x0A
         cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num

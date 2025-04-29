@@ -8,7 +8,7 @@ from .hex_maze_interface import HexMazeInterface
 @click.group()
 @click.pass_context
 def cli(ctx):
-    ctx.obj = HexMazeInterface()
+    ctx.obj = HexMazeInterface(debug=False)
 
 @cli.command()
 @click.pass_obj
@@ -74,6 +74,20 @@ def led_on(hmi, cluster_address):
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
+def led_on_then_off(hmi, cluster_address):
+    hmi.led_on_then_off(cluster_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('repeat-count', nargs=1, type=int)
+@click.pass_obj
+def measure(hmi, cluster_address, repeat_count):
+    duration = hmi.measure_communication(cluster_address, repeat_count)
+    print('duration = ', duration)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
 def power_off(hmi, cluster_address):
     hmi.power_off(cluster_address)
 
@@ -82,4 +96,17 @@ def power_off(hmi, cluster_address):
 @click.pass_obj
 def power_on(hmi, cluster_address):
     hmi.power_on(cluster_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('prism-address', nargs=1, type=int)
+@click.pass_obj
+def home_prism(hmi, cluster_address, prism_address):
+    hmi.home_prism(cluster_address, prism_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def home_all_prisms(hmi, cluster_address):
+    hmi.home_all_prisms(cluster_address)
 
