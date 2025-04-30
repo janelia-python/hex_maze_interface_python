@@ -58,6 +58,9 @@ class HexMazeInterface():
                 except (TimeoutError, OSError):
                     self._debug_print('socket timed out')
                     repeat_count += 1
+        if repeat_count == REPEAT_LIMIT:
+            self._debug_print('no response received')
+            rsp = struct.pack('<B', ERROR_RESPONSE)
         try:
             self._debug_print('rsp: ', rsp.hex())
         except AttributeError:
