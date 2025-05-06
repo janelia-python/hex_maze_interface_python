@@ -88,25 +88,25 @@ def measure(hmi, cluster_address, repeat_count):
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def power_off(hmi, cluster_address):
-    hmi.power_off_all_prisms(cluster_address)
+def power_off_all(hmi, cluster_address):
+    hmi.power_off_all(cluster_address)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def power_on(hmi, cluster_address):
-    hmi.power_on_all_prisms(cluster_address)
+def power_on_all(hmi, cluster_address):
+    hmi.power_on_all(cluster_address)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.argument('prism-address', nargs=1, type=int)
 @click.pass_obj
-def home_prism(hmi, cluster_address, prism_address):
-    hmi.home_prism(cluster_address, prism_address)
+def home(hmi, cluster_address, prism_address):
+    hmi.home(cluster_address, prism_address)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def home_all_prisms(hmi, cluster_address):
-    hmi.home_all_prisms(cluster_address)
+def home_all(hmi, cluster_address):
+    hmi.home_all(cluster_address)
 

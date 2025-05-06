@@ -152,28 +152,28 @@ class HexMazeInterface():
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
-    def power_off_all_prisms(self, cluster_address):
+    def power_off_all(self, cluster_address):
         """Turn off power to all cluster prisms."""
         cmd_num = 0x07
         cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
-    def power_on_all_prisms(self, cluster_address):
+    def power_on_all(self, cluster_address):
         """Turn on power to all cluster prisms."""
         cmd_num = 0x08
         cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
-    def home_prism(self, cluster_address, prism_address):
+    def home(self, cluster_address, prism_address):
         """Home a single prism in a cluster."""
         cmd_num = 0x09
         cmd = struct.pack('<BBB', PROTOCOL_VERSION, cmd_num, prism_address)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
-    def home_all_prisms(self, cluster_address):
+    def home_all(self, cluster_address):
         """Home all prisms in a cluster."""
         cmd_num = 0x0A
         cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
