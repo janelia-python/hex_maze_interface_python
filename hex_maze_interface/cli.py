@@ -110,3 +110,11 @@ def home(hmi, cluster_address, prism_address):
 def home_all(hmi, cluster_address):
     hmi.home_all(cluster_address)
 
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('prism-address', nargs=1, type=int)
+@click.argument('position-mm', nargs=1, type=int)
+@click.pass_obj
+def write_target_position(hmi, cluster_address, prism_address, position_mm):
+    hmi.write_target_position(cluster_address, prism_address, position_mm)
+

@@ -179,3 +179,11 @@ class HexMazeInterface():
         cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
+
+    def write_target_position(self, cluster_address, prism_address, position_mm):
+        """Write target position to a single prism in a cluster."""
+        cmd_num = 0x0B
+        cmd = struct.pack('<BBBH', PROTOCOL_VERSION, cmd_num, prism_address, position_mm)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
