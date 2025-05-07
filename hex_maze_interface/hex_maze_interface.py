@@ -10,7 +10,7 @@ def results_filter(pair):
     try:
         ports = value['ports']
         for port in ports:
-            if port['portid'] == str(PORT) and port['state'] == 'open':
+            if port['portid'] == str(HexMazeInterface.PORT) and port['state'] == 'open':
                 return True
     except (KeyError, TypeError) as e:
         pass
