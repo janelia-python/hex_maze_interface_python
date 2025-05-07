@@ -125,3 +125,29 @@ def write_target_position(hmi, cluster_address, prism_address, position_mm):
 def write_all_target_positions(hmi, cluster_address, positions_mm):
     hmi.write_all_target_positions(cluster_address, positions_mm)
 
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('prism-address', nargs=1, type=int)
+@click.pass_obj
+def pause(hmi, cluster_address, prism_address):
+    hmi.pause(cluster_address, prism_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def pause_all(hmi, cluster_address):
+    hmi.pause_all(cluster_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('prism-address', nargs=1, type=int)
+@click.pass_obj
+def resume(hmi, cluster_address, prism_address):
+    hmi.resume(cluster_address, prism_address)
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def resume_all(hmi, cluster_address):
+    hmi.resume_all(cluster_address)
+

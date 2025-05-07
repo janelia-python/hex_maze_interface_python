@@ -195,3 +195,31 @@ class HexMazeInterface():
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
+    def pause(self, cluster_address, prism_address):
+        """Pause a single prism in a cluster."""
+        cmd_num = 0x0D
+        cmd = struct.pack('<BBB', HexMazeInterface.PROTOCOL_VERSION, cmd_num, prism_address)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def pause_all(self, cluster_address):
+        """Pause all prisms in a cluster."""
+        cmd_num = 0x0E
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def resume(self, cluster_address, prism_address):
+        """Resume a single prism in a cluster."""
+        cmd_num = 0x0D
+        cmd = struct.pack('<BBB', HexMazeInterface.PROTOCOL_VERSION, cmd_num, prism_address)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def resume_all(self, cluster_address):
+        """Resume all prisms in a cluster."""
+        cmd_num = 0x0E
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
