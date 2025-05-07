@@ -5,16 +5,6 @@ import struct
 import time
 
 
-PORT = 7777
-IP_BASE = '192.168.10.'
-IP_RANGE = IP_BASE + '0/24'
-REPEAT_LIMIT = 4
-PROTOCOL_VERSION = 0x01
-ERROR_RESPONSE = 0xEE
-CHECK_COMMUNICATION_RESPONSE = 0x12345678
-CLUSTER_ADDRESS_MIN = 10
-CLUSTER_ADDRESS_MAX = 255
-
 def results_filter(pair):
     key, value = pair
     try:
@@ -28,6 +18,17 @@ def results_filter(pair):
     return False
 
 class HexMazeInterface():
+    PORT = 7777
+    IP_BASE = '192.168.10.'
+    IP_RANGE = IP_BASE + '0/24'
+    REPEAT_LIMIT = 4
+    PROTOCOL_VERSION = 0x01
+    ERROR_RESPONSE = 0xEE
+    CHECK_COMMUNICATION_RESPONSE = 0x12345678
+    CLUSTER_ADDRESS_MIN = 10
+    CLUSTER_ADDRESS_MAX = 255
+    PRISM_COUNT = 7
+
     """Python interface to the Voigts lab hex maze."""
     def __init__(self, debug=True):
         """Initialize a HexMazeInterface instance."""
@@ -46,21 +47,21 @@ class HexMazeInterface():
         repeat_count = 0
         rsp = None
         self._debug_print('cmd: ', cmd.hex())
-        while repeat_count < REPEAT_LIMIT:
+        while repeat_count < HexMazeInterface.REPEAT_LIMIT:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                self._debug_print(f'to {ip_address} port {PORT}')
+                self._debug_print(f'to {ip_address} port {HexMazeInterface.PORT}')
                 s.settimeout(2)
                 try:
-                    s.connect((ip_address, PORT))
+                    s.connect((ip_address, HexMazeInterface.PORT))
                     s.sendall(cmd)
                     rsp = s.recv(1024)
                     break
                 except (TimeoutError, OSError):
                     self._debug_print('socket timed out')
                     repeat_count += 1
-        if repeat_count == REPEAT_LIMIT:
+        if repeat_count == HexMazeInterface.REPEAT_LIMIT:
             self._debug_print('no response received')
-            rsp = struct.pack('<B', ERROR_RESPONSE)
+            rsp = struct.pack('<B', HexMazeInterface.ERROR_RESPONSE)
         try:
             self._debug_print('rsp: ', rsp.hex())
         except AttributeError:
@@ -68,11 +69,11 @@ class HexMazeInterface():
         return rsp
 
     def _send_cluster_cmd_receive_rsp(self, cluster_address, cmd):
-        ip_address = IP_BASE + str(cluster_address)
+        ip_address = HexMazeInterface.IP_BASE + str(cluster_address)
         return self._send_ip_cmd_receive_rsp(ip_address, cmd)
 
     def _discover_ip_addresses(self):
-        results = self._nmap.nmap_portscan_only(IP_RANGE, args=f'-p {PORT}')
+        results = self._nmap.nmap_portscan_only(HexMazeInterface.IP_RANGE, args=f'-p {HexMazeInterface.PORT}')
         filtered_results = dict(filter(results_filter, results.items()))
         return list(filtered_results.keys())
 
@@ -86,41 +87,41 @@ class HexMazeInterface():
 
     def read_cluster_address(self, ip_address):
         cmd_num = 0x01
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_ip_cmd_receive_rsp(ip_address, cmd))[0]
         return rsp
 
     def check_communication(self, cluster_address):
         """Check communication with cluster."""
         cmd_num = 0x02
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<L', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
-        return rsp == CHECK_COMMUNICATION_RESPONSE
+        return rsp == HexMazeInterface.CHECK_COMMUNICATION_RESPONSE
 
     def no_cmd(self, cluster_address):
         """Send no command to get error response."""
-        cmd = struct.pack('<B', PROTOCOL_VERSION)
+        cmd = struct.pack('<B', HexMazeInterface.PROTOCOL_VERSION)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
-        return rsp == ERROR_RESPONSE
+        return rsp == HexMazeInterface.ERROR_RESPONSE
 
     def bad_cmd(self, cluster_address):
         """Send bad command to get error response."""
-        cmd_num = ERROR_RESPONSE
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd_num = HexMazeInterface.ERROR_RESPONSE
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
-        return rsp == ERROR_RESPONSE
+        return rsp == HexMazeInterface.ERROR_RESPONSE
 
     def reset(self, cluster_address):
         """Reset cluster microcontroller."""
         cmd_num = 0x03
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def beep(self, cluster_address, duration_ms):
         """Command cluster to beep for duration."""
         cmd_num = 0x04
-        cmd = struct.pack('<BBH', PROTOCOL_VERSION, cmd_num, duration_ms)
+        cmd = struct.pack('<BBH', HexMazeInterface.PROTOCOL_VERSION, cmd_num, duration_ms)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
@@ -141,49 +142,56 @@ class HexMazeInterface():
     def led_off(self, cluster_address):
         """Turn cluster pcb LED off."""
         cmd_num = 0x05
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def led_on(self, cluster_address):
         """Turn cluster pcb LED on."""
         cmd_num = 0x06
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def power_off_all(self, cluster_address):
         """Turn off power to all cluster prisms."""
         cmd_num = 0x07
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def power_on_all(self, cluster_address):
         """Turn on power to all cluster prisms."""
         cmd_num = 0x08
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def home(self, cluster_address, prism_address):
         """Home a single prism in a cluster."""
         cmd_num = 0x09
-        cmd = struct.pack('<BBB', PROTOCOL_VERSION, cmd_num, prism_address)
+        cmd = struct.pack('<BBB', HexMazeInterface.PROTOCOL_VERSION, cmd_num, prism_address)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def home_all(self, cluster_address):
         """Home all prisms in a cluster."""
         cmd_num = 0x0A
-        cmd = struct.pack('<BB', PROTOCOL_VERSION, cmd_num)
+        cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def write_target_position(self, cluster_address, prism_address, position_mm):
         """Write target position to a single prism in a cluster."""
         cmd_num = 0x0B
-        cmd = struct.pack('<BBBH', PROTOCOL_VERSION, cmd_num, prism_address, position_mm)
+        cmd = struct.pack('<BBBH', HexMazeInterface.PROTOCOL_VERSION, cmd_num, prism_address, position_mm)
+        rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
+        return rsp == cmd_num
+
+    def write_all_target_positions(self, cluster_address, positions_mm):
+        """Write target positions to all prisms in a cluster."""
+        cmd_num = 0x0C
+        cmd = struct.pack('<BBHHHHHHH', HexMazeInterface.PROTOCOL_VERSION, cmd_num, *positions_mm)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
