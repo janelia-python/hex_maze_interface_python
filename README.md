@@ -1,22 +1,22 @@
-- [About](#org9a6dbb4)
-- [Example Usage](#org70f1ee4)
-- [Installation](#org3cc5916)
-- [Development](#orga99ddda)
+- [About](#org895fb3b)
+- [Example Usage](#org6332497)
+- [Installation](#orgad27e52)
+- [Development](#orgbbf41b8)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org9a6dbb4"></a>
+<a id="org895fb3b"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 1.0.0
+- Version: 1.1.0
 - Python Version: 3.10
-- Release Date: 2025-04-14
+- Release Date: 2025-05-07
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org70f1ee4"></a>
+<a id="org6332497"></a>
 
 # Example Usage
 
@@ -42,29 +42,73 @@
 
 ```python
 from hex_maze_interface import HexMazeInterface
+hmi = HexMazeInterface()
+cluster_address = 10
+hmi.check_communication(cluster_address)
+hmi.beep(cluster_address, duration_ms=100)
+hmi.power_on_all(cluster_address)
+hmi.home_all(cluster_address)
+hmi.pause_all(cluster_address)
+hmi.write_all_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
+hmi.resume_all(cluster_address)
+hmi.power_off_all(cluster_address)
 ```
 
 
 ## Command Line
 
 
-### help
+### Help
 
 ```sh
 hex-maze-interface --help
-# Usage: hex-maze-interface [OPTIONS]
+# Usage: hex-maze-interface [OPTIONS] COMMAND [ARGS]...
 
 #   Command line interface to the Voigts lab hex maze.
 
-# Options:
-#   -p, --port TEXT          Device name (e.g. /dev/ttyACM0 on GNU/Linux or COM3
-#                            on Windows)
-#   --debug                  Print debugging information.
-#   -h, --help               Show this message and exit.
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  bad-cmd
+  beep
+  check
+  discover
+  home
+  home-all
+  led-off
+  led-on
+  led-on-then-off
+  measure
+  no-cmd
+  pause
+  pause-all
+  power-off-all
+  power-on-all
+  reset
+  resume
+  resume-all
+  write-all-target-positions
+  write-target-position
 ```
 
 
-<a id="org3cc5916"></a>
+### Example
+
+```sh
+CLUSTER_ADDRESS=10
+hex-maze-interface check $CLUSTER_ADDRESS
+hex-maze-interface beep $CLUSTER_ADDRESS 100
+hex-maze-interface power-on-all $CLUSTER_ADDRESS
+hex-maze-interface home-all $CLUSTER_ADDRESS
+hex-maze-interface pause-all $CLUSTER_ADDRESS
+hex-maze-interface write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
+hex-maze-interface resume-all $CLUSTER_ADDRESS
+hex-maze-interface power-off-all $CLUSTER_ADDRESS
+```
+
+
+<a id="orgad27e52"></a>
 
 # Installation
 
@@ -189,7 +233,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orga99ddda"></a>
+<a id="orgbbf41b8"></a>
 
 # Development
 

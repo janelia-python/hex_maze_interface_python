@@ -4,9 +4,9 @@
     "license": "https://spdx.org/licenses/BSD-3-Clause",
     "codeRepository": "https://github.com/janelia-python/hex_maze_interface_python",
     "dateCreated": "2024-01-14",
-    "dateModified": "2025-04-14",
+    "dateModified": "2025-05-07",
     "name": "hex_maze_interface",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Python interface to the Voigts lab hex maze.",
     "programmingLanguage": [
         "Python 3"

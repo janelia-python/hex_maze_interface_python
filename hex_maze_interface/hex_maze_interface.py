@@ -30,7 +30,7 @@ class HexMazeInterface():
     PRISM_COUNT = 7
 
     """Python interface to the Voigts lab hex maze."""
-    def __init__(self, debug=True):
+    def __init__(self, debug=False):
         """Initialize a HexMazeInterface instance."""
         self._debug = debug
         self._nmap = nmap3.NmapHostDiscovery()
@@ -211,14 +211,14 @@ class HexMazeInterface():
 
     def resume(self, cluster_address, prism_address):
         """Resume a single prism in a cluster."""
-        cmd_num = 0x0D
+        cmd_num = 0x0F
         cmd = struct.pack('<BBB', HexMazeInterface.PROTOCOL_VERSION, cmd_num, prism_address)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
 
     def resume_all(self, cluster_address):
         """Resume all prisms in a cluster."""
-        cmd_num = 0x0E
+        cmd_num = 0x10
         cmd = struct.pack('<BB', HexMazeInterface.PROTOCOL_VERSION, cmd_num)
         rsp = struct.unpack('<B', self._send_cluster_cmd_receive_rsp(cluster_address, cmd))[0]
         return rsp == cmd_num
