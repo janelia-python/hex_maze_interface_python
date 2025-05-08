@@ -1,22 +1,22 @@
-- [About](#org0a50d52)
-- [Example Usage](#org0954ca1)
-- [Installation](#org8d2d5af)
-- [Development](#orgd92097b)
+- [About](#orgb2a47c6)
+- [Example Usage](#org72319fb)
+- [Installation](#org8501dee)
+- [Development](#orge1355dc)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org0a50d52"></a>
+<a id="orgb2a47c6"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 1.1.0
-- Python Version: 3.10
-- Release Date: 2025-05-07
+- Version: 2.0.0
+- Python Version: 3.11
+- Release Date: 2025-05-08
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org0954ca1"></a>
+<a id="org72319fb"></a>
 
 # Example Usage
 
@@ -41,7 +41,7 @@
 ## Python
 
 ```python
-from hex_maze_interface import HexMazeInterface
+from hex_maze_interface import HexMazeInterface, MazeException
 hmi = HexMazeInterface()
 cluster_address = 10
 hmi.check_communication(cluster_address)
@@ -61,8 +61,8 @@ hmi.power_off_all(cluster_address)
 ### Help
 
 ```sh
-hex-maze-interface --help
-# Usage: hex-maze-interface [OPTIONS] COMMAND [ARGS]...
+maze --help
+# Usage: maze [OPTIONS] COMMAND [ARGS]...
 
 #   Command line interface to the Voigts lab hex maze.
 
@@ -97,18 +97,18 @@ Commands:
 
 ```sh
 CLUSTER_ADDRESS=10
-hex-maze-interface check $CLUSTER_ADDRESS
-hex-maze-interface beep $CLUSTER_ADDRESS 100
-hex-maze-interface power-on-all $CLUSTER_ADDRESS
-hex-maze-interface home-all $CLUSTER_ADDRESS
-hex-maze-interface pause-all $CLUSTER_ADDRESS
-hex-maze-interface write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
-hex-maze-interface resume-all $CLUSTER_ADDRESS
-hex-maze-interface power-off-all $CLUSTER_ADDRESS
+maze check $CLUSTER_ADDRESS
+maze beep $CLUSTER_ADDRESS 100
+maze power-on-all $CLUSTER_ADDRESS
+maze home-all $CLUSTER_ADDRESS
+maze pause-all $CLUSTER_ADDRESS
+maze write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
+maze resume-all $CLUSTER_ADDRESS
+maze power-off-all $CLUSTER_ADDRESS
 ```
 
 
-<a id="org8d2d5af"></a>
+<a id="org8501dee"></a>
 
 # Installation
 
@@ -233,7 +233,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgd92097b"></a>
+<a id="orge1355dc"></a>
 
 # Development
 

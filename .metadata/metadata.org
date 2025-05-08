@@ -26,7 +26,7 @@ python-hex-maze-interface
 
 #+NAME: version
 #+BEGIN_SRC text :exports none :noweb yes
-1.1.0
+2.0.0
 #+END_SRC
 
 #+NAME: description
@@ -36,7 +36,7 @@ Python interface to the Voigts lab hex maze.
 
 #+NAME: python-version
 #+BEGIN_SRC text :exports none :noweb yes
-3.10
+3.11
 #+END_SRC
 
 #+NAME: python-dependencies
@@ -51,9 +51,14 @@ python-click
 python-nmap
 #+END_SRC
 
+#+NAME: python-import
+#+BEGIN_SRC text :exports none :noweb yes
+HexMazeInterface, MazeException
+#+END_SRC
+
 #+NAME: command-line-interface
 #+BEGIN_SRC text :exports none :noweb yes
-hex-maze-interface
+maze
 #+END_SRC
 
 #+NAME: references
@@ -179,8 +184,8 @@ Python 3
 
 ** Python
 
-#+BEGIN_SRC python
-from hex_maze_interface import HexMazeInterface
+#+BEGIN_SRC python :noweb yes
+from hex_maze_interface import <<python-import>>
 hmi = HexMazeInterface()
 cluster_address = 10
 hmi.check_communication(cluster_address)
@@ -233,14 +238,14 @@ Commands:
 
 #+BEGIN_SRC sh :noweb yes
 CLUSTER_ADDRESS=10
-hex-maze-interface check $CLUSTER_ADDRESS
-hex-maze-interface beep $CLUSTER_ADDRESS 100
-hex-maze-interface power-on-all $CLUSTER_ADDRESS
-hex-maze-interface home-all $CLUSTER_ADDRESS
-hex-maze-interface pause-all $CLUSTER_ADDRESS
-hex-maze-interface write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
-hex-maze-interface resume-all $CLUSTER_ADDRESS
-hex-maze-interface power-off-all $CLUSTER_ADDRESS
+<<command-line-interface>> check $CLUSTER_ADDRESS
+<<command-line-interface>> beep $CLUSTER_ADDRESS 100
+<<command-line-interface>> power-on-all $CLUSTER_ADDRESS
+<<command-line-interface>> home-all $CLUSTER_ADDRESS
+<<command-line-interface>> pause-all $CLUSTER_ADDRESS
+<<command-line-interface>> write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
+<<command-line-interface>> resume-all $CLUSTER_ADDRESS
+<<command-line-interface>> power-off-all $CLUSTER_ADDRESS
 #+END_SRC
 
 * Installation
@@ -472,7 +477,7 @@ exit
         (url "https://git.savannah.gnu.org/git/guix.git")
         (branch "master")
         (commit
-          "efac1498c15198afc4f9a2bc700408bde1b3b3ed")
+          "2e3da9f8f280038ab720990b1a7b73d8ceee02bc")
         (introduction
           (make-channel-introduction
             "9edb3f66fd807b096b48283debdcddccfea34bad"
@@ -828,7 +833,7 @@ from <<python-package-name>>.__about__ import (
     __url__,
     __version__)
 
-from .<<python-package-name>> import HexMazeInterface
+from .<<python-package-name>> import <<python-import>>
 #+END_SRC
 
 #+NAME: license-text

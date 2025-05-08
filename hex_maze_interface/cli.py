@@ -2,13 +2,13 @@
 import click
 import os
 
-from .hex_maze_interface import HexMazeInterface
+from .hex_maze_interface import HexMazeInterface, MazeException
 
 
 @click.group()
 @click.pass_context
 def cli(ctx):
-    ctx.obj = HexMazeInterface(debug=False)
+    ctx.obj = HexMazeInterface(debug=True)
 
 @cli.command()
 @click.pass_obj
