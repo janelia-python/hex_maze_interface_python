@@ -277,3 +277,13 @@ class HexMazeInterface():
         cmd_num = 0x10
         self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
 
+    def read_all_actual_positions(self, cluster_address):
+        """Read actual position from every prism in cluster."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x11
+        cmd_par = None
+        rsp_params_fmt = '<hhhhhhh'
+        rsp_params_len = 14
+        return self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+

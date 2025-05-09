@@ -149,3 +149,10 @@ def resume(hmi, cluster_address, prism_address):
 def resume_all(hmi, cluster_address):
     hmi.resume_all(cluster_address)
 
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def read_all_actual_positions(hmi, cluster_address):
+    actual_positions = hmi.read_all_actual_positions(cluster_address)
+    print(actual_positions)
+

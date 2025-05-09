@@ -1,13 +1,13 @@
-- [About](#orgb2a47c6)
-- [Example Usage](#org72319fb)
-- [Installation](#org8501dee)
-- [Development](#orge1355dc)
+- [About](#org883025a)
+- [Example Usage](#orge364b40)
+- [Installation](#org93319d8)
+- [Development](#org8af78ad)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgb2a47c6"></a>
+<a id="org883025a"></a>
 
 # About
 
@@ -16,7 +16,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 2.0.0
 - Python Version: 3.11
-- Release Date: 2025-05-08
+- Release Date: 2025-05-09
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org72319fb"></a>
+<a id="orge364b40"></a>
 
 # Example Usage
 
@@ -48,9 +48,11 @@ hmi.check_communication(cluster_address)
 hmi.beep(cluster_address, duration_ms=100)
 hmi.power_on_all(cluster_address)
 hmi.home_all(cluster_address)
+actual_positions = hmi.read_all_actual_positions()
 hmi.pause_all(cluster_address)
 hmi.write_all_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 hmi.resume_all(cluster_address)
+actual_positions = hmi.read_all_actual_positions()
 hmi.power_off_all(cluster_address)
 ```
 
@@ -101,14 +103,16 @@ maze check $CLUSTER_ADDRESS
 maze beep $CLUSTER_ADDRESS 100
 maze power-on-all $CLUSTER_ADDRESS
 maze home-all $CLUSTER_ADDRESS
+maze read-all-actual-positions $CLUSTER_ADDRESS
 maze pause-all $CLUSTER_ADDRESS
 maze write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 maze resume-all $CLUSTER_ADDRESS
+maze read-all-actual-positions $CLUSTER_ADDRESS
 maze power-off-all $CLUSTER_ADDRESS
 ```
 
 
-<a id="org8501dee"></a>
+<a id="org93319d8"></a>
 
 # Installation
 
@@ -233,7 +237,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orge1355dc"></a>
+<a id="org8af78ad"></a>
 
 # Development
 

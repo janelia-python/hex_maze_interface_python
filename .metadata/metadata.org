@@ -192,9 +192,11 @@ hmi.check_communication(cluster_address)
 hmi.beep(cluster_address, duration_ms=100)
 hmi.power_on_all(cluster_address)
 hmi.home_all(cluster_address)
+actual_positions = hmi.read_all_actual_positions()
 hmi.pause_all(cluster_address)
 hmi.write_all_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 hmi.resume_all(cluster_address)
+actual_positions = hmi.read_all_actual_positions()
 hmi.power_off_all(cluster_address)
 #+END_SRC
 
@@ -242,9 +244,11 @@ CLUSTER_ADDRESS=10
 <<command-line-interface>> beep $CLUSTER_ADDRESS 100
 <<command-line-interface>> power-on-all $CLUSTER_ADDRESS
 <<command-line-interface>> home-all $CLUSTER_ADDRESS
+<<command-line-interface>> read-all-actual-positions $CLUSTER_ADDRESS
 <<command-line-interface>> pause-all $CLUSTER_ADDRESS
 <<command-line-interface>> write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 <<command-line-interface>> resume-all $CLUSTER_ADDRESS
+<<command-line-interface>> read-all-actual-positions $CLUSTER_ADDRESS
 <<command-line-interface>> power-off-all $CLUSTER_ADDRESS
 #+END_SRC
 
