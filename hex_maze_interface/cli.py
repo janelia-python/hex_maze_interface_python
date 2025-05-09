@@ -47,10 +47,8 @@ def bad_cmd(hmi, cluster_address):
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
 def reset(hmi, cluster_address):
-    if hmi.reset(cluster_address):
-        print('resetting')
-    else:
-        print('not resetting')
+    hmi.reset(cluster_address)
+    print('resetting')
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
