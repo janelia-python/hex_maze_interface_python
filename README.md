@@ -1,13 +1,13 @@
-- [About](#orge5e60eb)
-- [Example Usage](#org5114e08)
-- [Installation](#org4041336)
-- [Development](#orgb4cd4c3)
+- [About](#org04943fd)
+- [Example Usage](#orgda7264a)
+- [Installation](#org7a86a13)
+- [Development](#orgdc26a52)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orge5e60eb"></a>
+<a id="org04943fd"></a>
 
 # About
 
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org5114e08"></a>
+<a id="orgda7264a"></a>
 
 # Example Usage
 
@@ -112,7 +112,7 @@ maze power-off-all $CLUSTER_ADDRESS
 ```
 
 
-<a id="org4041336"></a>
+<a id="org7a86a13"></a>
 
 # Installation
 
@@ -237,7 +237,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgb4cd4c3"></a>
+<a id="orgdc26a52"></a>
 
 # Development
 
