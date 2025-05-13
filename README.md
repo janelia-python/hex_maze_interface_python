@@ -1,22 +1,22 @@
-- [About](#org04943fd)
-- [Example Usage](#orgda7264a)
-- [Installation](#org7a86a13)
-- [Development](#orgdc26a52)
+- [About](#org811fdeb)
+- [Example Usage](#org4bd3683)
+- [Installation](#org57fe339)
+- [Development](#orgaad3f2b)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org04943fd"></a>
+<a id="org811fdeb"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 2.0.0
+- Version: 2.1.0
 - Python Version: 3.11
-- Release Date: 2025-05-12
+- Release Date: 2025-05-13
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="orgda7264a"></a>
+<a id="org4bd3683"></a>
 
 # Example Usage
 
@@ -44,16 +44,16 @@
 from hex_maze_interface import HexMazeInterface, MazeException
 hmi = HexMazeInterface()
 cluster_address = 10
-hmi.check_communication(cluster_address)
-hmi.beep(cluster_address, duration_ms=100)
-hmi.power_on_all(cluster_address)
-hmi.home_all(cluster_address)
-actual_positions = hmi.read_all_actual_positions()
-hmi.pause_all(cluster_address)
-hmi.write_all_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
-hmi.resume_all(cluster_address)
-actual_positions = hmi.read_all_actual_positions()
-hmi.power_off_all(cluster_address)
+hmi.check_all()
+hmi.beep_all(duration_ms=100)
+hmi.power_on_all()
+hmi.home_all()
+actual_positions = hmi.read_actual_positions(cluster_address)
+hmi.pause_all()
+hmi.write_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
+hmi.resume_all(c)
+actual_positions = hmi.read_actual_positions(cluster_address)
+hmi.power_off_all()
 ```
 
 
@@ -74,7 +74,9 @@ Options:
 Commands:
   bad-cmd
   beep
+  beep-all
   check
+  check-all
   discover
   home
   home-all
@@ -85,13 +87,15 @@ Commands:
   no-cmd
   pause
   pause-all
+  power-off
   power-off-all
+  power-on
   power-on-all
+  read-actual-positions
   reset
   resume
   resume-all
-  write-all-target-positions
-  write-target-position
+  write-target-positions
 ```
 
 
@@ -99,20 +103,20 @@ Commands:
 
 ```sh
 CLUSTER_ADDRESS=10
-maze check $CLUSTER_ADDRESS
-maze beep $CLUSTER_ADDRESS 100
-maze power-on-all $CLUSTER_ADDRESS
-maze home-all $CLUSTER_ADDRESS
-maze read-all-actual-positions $CLUSTER_ADDRESS
-maze pause-all $CLUSTER_ADDRESS
-maze write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
-maze resume-all $CLUSTER_ADDRESS
-maze read-all-actual-positions $CLUSTER_ADDRESS
-maze power-off-all $CLUSTER_ADDRESS
+maze check-all
+maze beep-all 100
+maze power-on-all
+maze home-all
+maze read-actual-positions $CLUSTER_ADDRESS
+maze pause-all
+maze write-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
+maze resume-all
+maze read-actual-positions $CLUSTER_ADDRESS
+maze power-off-all
 ```
 
 
-<a id="org7a86a13"></a>
+<a id="org57fe339"></a>
 
 # Installation
 
@@ -237,7 +241,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgdc26a52"></a>
+<a id="orgaad3f2b"></a>
 
 # Development
 

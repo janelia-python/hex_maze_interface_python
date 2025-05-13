@@ -8,7 +8,7 @@ from .hex_maze_interface import HexMazeInterface, MazeException
 @click.group()
 @click.pass_context
 def cli(ctx):
-    ctx.obj = HexMazeInterface(debug=True)
+    ctx.obj = HexMazeInterface(debug=False)
 
 @cli.command()
 @click.pass_obj
@@ -20,10 +20,14 @@ def discover(hmi):
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
 def check(hmi, cluster_address):
-    if hmi.check_communication(cluster_address):
-        print('communicating')
-    else:
-        print('not communicating!')
+    communicating = hmi.check(cluster_address)
+    print(communicating)
+
+@cli.command()
+@click.pass_obj
+def check_all(hmi):
+    communicating = hmi.check_all()
+    print(communicating)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
@@ -58,6 +62,12 @@ def beep(hmi, cluster_address, duration_ms):
     hmi.beep(cluster_address, duration_ms)
 
 @cli.command()
+@click.argument('duration-ms', nargs=1, type=int)
+@click.pass_obj
+def beep_all(hmi, duration_ms):
+    hmi.beep_all(duration_ms)
+
+@cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
 def led_off(hmi, cluster_address):
@@ -86,73 +96,69 @@ def measure(hmi, cluster_address, repeat_count):
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def power_off_all(hmi, cluster_address):
-    hmi.power_off_all(cluster_address)
+def power_off(hmi, cluster_address):
+    hmi.power_off(cluster_address)
+
+@cli.command()
+@click.pass_obj
+def power_off_all(hmi):
+    hmi.power_off_all()
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def power_on_all(hmi, cluster_address):
+def power_on(hmi, cluster_address):
     hmi.power_on_all(cluster_address)
 
 @cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.argument('prism-address', nargs=1, type=int)
 @click.pass_obj
-def home(hmi, cluster_address, prism_address):
-    hmi.home(cluster_address, prism_address)
+def power_on_all(hmi):
+    hmi.power_on_all()
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def home_all(hmi, cluster_address):
-    hmi.home_all(cluster_address)
+def home(hmi, cluster_address):
+    hmi.home(cluster_address)
 
 @cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.argument('prism-address', nargs=1, type=int)
-@click.argument('position-mm', nargs=1, type=int)
 @click.pass_obj
-def write_target_position(hmi, cluster_address, prism_address, position_mm):
-    hmi.write_target_position(cluster_address, prism_address, position_mm)
+def home_all(hmi):
+    hmi.home_all()
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.argument('positions-mm', nargs=HexMazeInterface.PRISM_COUNT, type=int)
 @click.pass_obj
-def write_all_target_positions(hmi, cluster_address, positions_mm):
-    hmi.write_all_target_positions(cluster_address, positions_mm)
-
-@cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.argument('prism-address', nargs=1, type=int)
-@click.pass_obj
-def pause(hmi, cluster_address, prism_address):
-    hmi.pause(cluster_address, prism_address)
+def write_target_positions(hmi, cluster_address, positions_mm):
+    hmi.write_target_positions(cluster_address, positions_mm)
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def pause_all(hmi, cluster_address):
-    hmi.pause_all(cluster_address)
+def pause(hmi, cluster_address):
+    hmi.pause(cluster_address)
 
 @cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.argument('prism-address', nargs=1, type=int)
 @click.pass_obj
-def resume(hmi, cluster_address, prism_address):
-    hmi.resume(cluster_address, prism_address)
-
-@cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.pass_obj
-def resume_all(hmi, cluster_address):
-    hmi.resume_all(cluster_address)
+def pause_all(hmi):
+    hmi.pause_all()
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def read_all_actual_positions(hmi, cluster_address):
-    actual_positions = hmi.read_all_actual_positions(cluster_address)
+def resume(hmi, cluster_address):
+    hmi.resume(cluster_address)
+
+@cli.command()
+@click.pass_obj
+def resume_all(hmi):
+    hmi.resume_all()
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def read_actual_positions(hmi, cluster_address):
+    actual_positions = hmi.read_actual_positions(cluster_address)
     print(actual_positions)
 

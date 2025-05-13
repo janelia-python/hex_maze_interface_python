@@ -26,7 +26,7 @@ python-hex-maze-interface
 
 #+NAME: version
 #+BEGIN_SRC text :exports none :noweb yes
-2.0.0
+2.1.0
 #+END_SRC
 
 #+NAME: description
@@ -188,16 +188,16 @@ Python 3
 from hex_maze_interface import <<python-import>>
 hmi = HexMazeInterface()
 cluster_address = 10
-hmi.check_communication(cluster_address)
-hmi.beep(cluster_address, duration_ms=100)
-hmi.power_on_all(cluster_address)
-hmi.home_all(cluster_address)
-actual_positions = hmi.read_all_actual_positions()
-hmi.pause_all(cluster_address)
-hmi.write_all_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
-hmi.resume_all(cluster_address)
-actual_positions = hmi.read_all_actual_positions()
-hmi.power_off_all(cluster_address)
+hmi.check_all()
+hmi.beep_all(duration_ms=100)
+hmi.power_on_all()
+hmi.home_all()
+actual_positions = hmi.read_actual_positions(cluster_address)
+hmi.pause_all()
+hmi.write_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
+hmi.resume_all(c)
+actual_positions = hmi.read_actual_positions(cluster_address)
+hmi.power_off_all()
 #+END_SRC
 
 ** Command Line
@@ -216,7 +216,9 @@ Options:
 Commands:
   bad-cmd
   beep
+  beep-all
   check
+  check-all
   discover
   home
   home-all
@@ -227,29 +229,31 @@ Commands:
   no-cmd
   pause
   pause-all
+  power-off
   power-off-all
+  power-on
   power-on-all
+  read-actual-positions
   reset
   resume
   resume-all
-  write-all-target-positions
-  write-target-position
+  write-target-positions
 #+END_SRC
 
 *** Example
 
 #+BEGIN_SRC sh :noweb yes
 CLUSTER_ADDRESS=10
-<<command-line-interface>> check $CLUSTER_ADDRESS
-<<command-line-interface>> beep $CLUSTER_ADDRESS 100
-<<command-line-interface>> power-on-all $CLUSTER_ADDRESS
-<<command-line-interface>> home-all $CLUSTER_ADDRESS
-<<command-line-interface>> read-all-actual-positions $CLUSTER_ADDRESS
-<<command-line-interface>> pause-all $CLUSTER_ADDRESS
-<<command-line-interface>> write-all-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
-<<command-line-interface>> resume-all $CLUSTER_ADDRESS
-<<command-line-interface>> read-all-actual-positions $CLUSTER_ADDRESS
-<<command-line-interface>> power-off-all $CLUSTER_ADDRESS
+<<command-line-interface>> check-all
+<<command-line-interface>> beep-all 100
+<<command-line-interface>> power-on-all
+<<command-line-interface>> home-all
+<<command-line-interface>> read-actual-positions $CLUSTER_ADDRESS
+<<command-line-interface>> pause-all
+<<command-line-interface>> write-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
+<<command-line-interface>> resume-all
+<<command-line-interface>> read-actual-positions $CLUSTER_ADDRESS
+<<command-line-interface>> power-off-all
 #+END_SRC
 
 * Installation
