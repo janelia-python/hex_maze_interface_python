@@ -1,13 +1,13 @@
-- [About](#org811fdeb)
-- [Example Usage](#org4bd3683)
-- [Installation](#org57fe339)
-- [Development](#orgaad3f2b)
+- [About](#orgfcb28bd)
+- [Example Usage](#org02aaec0)
+- [Installation](#org279cea0)
+- [Development](#org057c31a)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org811fdeb"></a>
+<a id="orgfcb28bd"></a>
 
 # About
 
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org4bd3683"></a>
+<a id="org02aaec0"></a>
 
 # Example Usage
 
@@ -116,7 +116,7 @@ maze power-off-all
 ```
 
 
-<a id="org57fe339"></a>
+<a id="org279cea0"></a>
 
 # Installation
 
@@ -241,7 +241,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgaad3f2b"></a>
+<a id="org057c31a"></a>
 
 # Development
 

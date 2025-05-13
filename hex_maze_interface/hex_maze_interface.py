@@ -5,6 +5,8 @@ import struct
 import time
 
 
+MILLISECONDS_PER_SECOND = 1000
+
 def results_filter(pair):
     key, value = pair
     try:
@@ -37,6 +39,7 @@ class HexMazeInterface():
     LENGTH_INDEX = 1
     COMMAND_NUMBER_INDEX = 2
     FIRST_PARAMETER_INDEX = 3
+    LOOP_DELAY_MS = 100
 
     """Python interface to the Voigts lab hex maze."""
     def __init__(self, debug=False):
@@ -168,6 +171,7 @@ class HexMazeInterface():
             except MazeException:
                 c = False
             communicating.append(c)
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
         return communicating
 
     def reset(self, cluster_address):
@@ -190,7 +194,7 @@ class HexMazeInterface():
         for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
             try:
                 self.beep(cluster_address, duration_ms)
-                time.sleep(duration_ms/1000)
+                time.sleep(duration_ms/MILLISECONDS_PER_SECOND)
             except MazeException:
                 pass
 
@@ -236,6 +240,7 @@ class HexMazeInterface():
                 self.power_off(cluster_address)
             except MazeException:
                 pass
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
 
     def power_on(self, cluster_address):
         """Turn on power to all cluster prisms."""
@@ -251,6 +256,7 @@ class HexMazeInterface():
                 self.power_on(cluster_address)
             except MazeException:
                 pass
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
 
     def home(self, cluster_address):
         """Home all prisms in a single cluster."""
@@ -266,6 +272,7 @@ class HexMazeInterface():
                 self.home(cluster_address)
             except MazeException:
                 pass
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
 
     def write_target_positions(self, cluster_address, positions_mm):
         """Write target positions to all prisms in a single cluster."""
@@ -289,6 +296,7 @@ class HexMazeInterface():
                 self.pause(cluster_address)
             except MazeException:
                 pass
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
 
     def resume(self, cluster_address):
         """Resume all prisms in a cluster."""
@@ -304,6 +312,7 @@ class HexMazeInterface():
                 self.resume(cluster_address)
             except MazeException:
                 pass
+            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
 
     def read_actual_positions(self, cluster_address):
         """Read actual position from every prism in a single cluster."""
