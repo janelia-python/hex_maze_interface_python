@@ -1,22 +1,22 @@
-- [About](#orgfcb28bd)
-- [Example Usage](#org02aaec0)
-- [Installation](#org279cea0)
-- [Development](#org057c31a)
+- [About](#org75a1d89)
+- [Example Usage](#orge5e5575)
+- [Installation](#org9ee6662)
+- [Development](#org444e556)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgfcb28bd"></a>
+<a id="org75a1d89"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 2.1.0
+- Version: 2.2.0
 - Python Version: 3.11
-- Release Date: 2025-05-13
+- Release Date: 2025-05-14
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org02aaec0"></a>
+<a id="orge5e5575"></a>
 
 # Example Usage
 
@@ -116,7 +116,7 @@ maze power-off-all
 ```
 
 
-<a id="org279cea0"></a>
+<a id="org9ee6662"></a>
 
 # Installation
 
@@ -241,7 +241,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org057c31a"></a>
+<a id="org444e556"></a>
 
 # Development
 
