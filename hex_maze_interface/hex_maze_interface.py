@@ -34,12 +34,12 @@ class HexMazeInterface():
     CHECK_COMMUNICATION_RESPONSE = 0x12345678
     CLUSTER_ADDRESS_MIN = 10
     CLUSTER_ADDRESS_MAX = 17
+    CLUSTER_ADDRESSES = range(CLUSTER_ADDRESS_MIN, CLUSTER_ADDRESS_MAX)
     PRISM_COUNT = 7
     PROTOCOL_VERSION_INDEX = 0
     LENGTH_INDEX = 1
     COMMAND_NUMBER_INDEX = 2
     FIRST_PARAMETER_INDEX = 3
-    LOOP_DELAY_MS = 100
 
     """Python interface to the Voigts lab hex maze."""
     def __init__(self, debug=False):
@@ -151,7 +151,7 @@ class HexMazeInterface():
         cluster_address = rsp_params[0]
         return cluster_address
 
-    def check(self, cluster_address):
+    def communicating_cluster(self, cluster_address):
         """Check communication with cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
@@ -159,162 +159,229 @@ class HexMazeInterface():
         cmd_par = None
         rsp_params_fmt = '<L'
         rsp_params_len = 4
-        communication_response = self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
-        return communication_response == HexMazeInterface.CHECK_COMMUNICATION_RESPONSE
+        try:
+            communication_response = self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+            return communication_response == HexMazeInterface.CHECK_COMMUNICATION_RESPONSE
+        except MazeException:
+            return False
 
-    def check_all(self):
+    def communicating_all_clusters(self):
         """Check communication with all clusters."""
-        communicating = []
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                c = self.check(cluster_address)
-            except MazeException:
-                c = False
-            communicating.append(c)
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
-        return communicating
+        return list(map(self.communicating_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def reset(self, cluster_address):
+    def reset_cluster(self, cluster_address):
         """Reset cluster microcontroller."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x03
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def beep(self, cluster_address, duration_ms):
+    def reset_all_clusters(self):
+        """Reset all cluster microcontrollers."""
+        return list(map(self.reset_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
+
+    def beep_cluster(self, cluster_address, duration_ms):
         """Command cluster to beep for duration."""
         cmd_fmt = '<BBBH'
         cmd_len = 5
         cmd_num = 0x04
         cmd_par = duration_ms
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            time.sleep(duration_ms/MILLISECONDS_PER_SECOND)
+            return True
+        except MazeException:
+            return False
 
-    def beep_all(self, duration_ms):
+    def beep_all_clusters(self, duration_ms):
         """Command all clusters to beep for duration."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.beep(cluster_address, duration_ms)
-                time.sleep(duration_ms/MILLISECONDS_PER_SECOND)
-            except MazeException:
-                pass
+        duration_ms_list = [duration_ms] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.beep_cluster, HexMazeInterface.CLUSTER_ADDRESSES, duration_ms_list))
 
-    def measure_communication(self, cluster_address, repeat_count):
+    def led_off_cluster(self, cluster_address):
+        """Turn cluster pcb LED off."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x05
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
+
+    def led_off_all_clusters(self):
+        """Turn all cluster pcb LEDs off."""
+        return list(map(self.led_off_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
+
+    def led_on_cluster(self, cluster_address):
+        """Turn cluster pcb LED on."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x06
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
+
+    def led_on_all_clusters(self):
+        """Turn all cluster pcb LEDs on."""
+        return list(map(self.led_on_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
+
+    def measure_communication_cluster(self, cluster_address, repeat_count):
         time_begin = time.time()
         for i in range(repeat_count):
-            self.led_on_then_off(cluster_address)
+            self.led_on_then_off_cluster(cluster_address)
         time_end = time.time()
         # led-on-then-off is 2 commands so multiply repeat_count by 2
         duration = (time_end - time_begin) / (repeat_count * 2)
         self._debug_print("duration = ", duration)
         return duration
 
-    def led_on_then_off(self, cluster_address):
-        self.led_on(cluster_address)
-        self.led_off(cluster_address)
+    def led_on_then_off_cluster(self, cluster_address):
+        self.led_on_cluster(cluster_address)
+        self.led_off_cluster(cluster_address)
 
-    def led_off(self, cluster_address):
-        """Turn cluster pcb LED off."""
-        cmd_fmt = '<BBB'
-        cmd_len = 3
-        cmd_num = 0x05
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
-
-    def led_on(self, cluster_address):
-        """Turn cluster pcb LED on."""
-        cmd_fmt = '<BBB'
-        cmd_len = 3
-        cmd_num = 0x06
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
-
-    def power_off(self, cluster_address):
+    def power_off_cluster(self, cluster_address):
         """Turn off power to all prisms in a single cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x07
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def power_off_all(self):
+    def power_off_all_clusters(self):
         """Turn off power to all clusters prisms."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.power_off(cluster_address)
-            except MazeException:
-                pass
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
+        return list(map(self.power_off_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def power_on(self, cluster_address):
+    def power_on_cluster(self, cluster_address):
         """Turn on power to all cluster prisms."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x08
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def power_on_all(self):
+    def power_on_all_clusters(self):
         """Turn on power to all clusters prisms."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.power_on(cluster_address)
-            except MazeException:
-                pass
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
+        return list(map(self.power_on_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def home(self, cluster_address):
+    def home_prism(self, cluster_address, prism_address):
+        """Home single prism in a single cluster."""
+        cmd_fmt = '<BBBB'
+        cmd_len = 4
+        cmd_num = 0x09
+        cmd_par = prism_address
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
+
+    def home_cluster(self, cluster_address):
         """Home all prisms in a single cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x0A
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def home_all(self):
+    def home_all_clusters(self):
         """Home all prisms in all clusters."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.home(cluster_address)
-            except MazeException:
-                pass
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
+        return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def write_target_positions(self, cluster_address, positions_mm):
+    def write_target_prism(self, cluster_address, prism_address, position_mm):
+        """Write target position to a single prism in a single cluster."""
+        cmd_fmt = '<BBBBH'
+        cmd_len = 6
+        cmd_num = 0x0B
+        cmd_par = (prism_address, position_mm)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
+
+    def write_targets_cluster(self, cluster_address, positions_mm):
         """Write target positions to all prisms in a single cluster."""
         cmd_fmt = '<BBBHHHHHHH'
         cmd_len = 17
         cmd_num = 0x0C
         cmd_par = positions_mm
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
 
-    def pause(self, cluster_address):
+    def pause_prism(self, cluster_address, prism_address):
+        """Pause single prism in a single cluster."""
+        cmd_fmt = '<BBBB'
+        cmd_len = 4
+        cmd_num = 0x0D
+        cmd_par = prism_address
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
+
+    def pause_cluster(self, cluster_address):
         """Pause all prisms in a cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x0E
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def pause_all(self):
+    def pause_all_clusters(self):
         """Pause all prisms in all clusters."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.pause(cluster_address)
-            except MazeException:
-                pass
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
+        return list(map(self.pause_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def resume(self, cluster_address):
+    def resume_prism(self, cluster_address, prism_address):
+        """Resume single prism in a single cluster."""
+        cmd_fmt = '<BBBB'
+        cmd_len = 4
+        cmd_num = 0x0F
+        cmd_par = prism_address
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
+
+    def resume_cluster(self, cluster_address):
         """Resume all prisms in a cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x10
-        self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
+            return True
+        except MazeException:
+            return False
 
-    def resume_all(self):
+    def resume_all_clusters(self):
         """Resume all prisms in all clusters."""
-        for cluster_address in range(HexMazeInterface.CLUSTER_ADDRESS_MIN, HexMazeInterface.CLUSTER_ADDRESS_MAX):
-            try:
-                self.resume(cluster_address)
-            except MazeException:
-                pass
-            time.sleep(HexMazeInterface.LOOP_DELAY_MS/MILLISECONDS_PER_SECOND)
+        return list(map(self.resume_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def read_actual_positions(self, cluster_address):
+    def read_actual_positions_cluster(self, cluster_address):
         """Read actual position from every prism in a single cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
