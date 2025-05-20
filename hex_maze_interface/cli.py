@@ -109,6 +109,12 @@ def home_all_clusters(hmi):
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def homed_cluster(hmi, cluster_address):
+    print(hmi.homed_cluster(cluster_address))
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
 @click.argument('prism-address', nargs=1, type=int)
 @click.argument('position-mm', nargs=1, type=int)
 @click.pass_obj

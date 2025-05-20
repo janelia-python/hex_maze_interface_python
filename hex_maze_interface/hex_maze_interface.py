@@ -28,7 +28,7 @@ class HexMazeInterface():
     IP_BASE = '192.168.10.'
     IP_RANGE = IP_BASE + '0/24'
     REPEAT_LIMIT = 2
-    PROTOCOL_VERSION = 0x02
+    PROTOCOL_VERSION = 0x03
     ERROR_RESPONSE = 0xEE
     ERROR_RESPONSE_LEN = 3
     CHECK_COMMUNICATION_RESPONSE = 0x12345678
@@ -303,11 +303,21 @@ class HexMazeInterface():
         """Home all prisms in all clusters."""
         return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
+    def homed_cluster(self, cluster_address):
+        """Read homed value from every prism in a single cluster."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x0B
+        cmd_par = None
+        rsp_params_fmt = '<BBBBBBB'
+        rsp_params_len = 7
+        return self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+
     def write_target_prism(self, cluster_address, prism_address, position_mm):
         """Write target position to a single prism in a single cluster."""
         cmd_fmt = '<BBBBH'
         cmd_len = 6
-        cmd_num = 0x0B
+        cmd_num = 0x0C
         cmd_par = (prism_address, position_mm)
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
@@ -319,7 +329,7 @@ class HexMazeInterface():
         """Write target positions to all prisms in a single cluster."""
         cmd_fmt = '<BBBHHHHHHH'
         cmd_len = 17
-        cmd_num = 0x0C
+        cmd_num = 0x0D
         cmd_par = positions_mm
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
