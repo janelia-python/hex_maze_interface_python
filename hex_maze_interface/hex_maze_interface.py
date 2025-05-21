@@ -276,12 +276,12 @@ class HexMazeInterface():
         """Turn on power to all clusters prisms."""
         return list(map(self.power_on_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def home_prism(self, cluster_address, prism_address):
+    def home_prism(self, cluster_address, prism_address, travel_limit, speed, stall_threshold):
         """Home single prism in a single cluster."""
-        cmd_fmt = '<BBBB'
-        cmd_len = 4
+        cmd_fmt = '<BBBBHBb'
+        cmd_len = 8
         cmd_num = 0x09
-        cmd_par = prism_address
+        cmd_par = (prism_address, travel_limit, speed, stall_threshold)
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
             return True
