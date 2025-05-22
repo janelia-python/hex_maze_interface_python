@@ -1,13 +1,13 @@
-- [About](#org253dbd2)
-- [Example Usage](#org0d5b854)
-- [Installation](#org054b71c)
-- [Development](#org3a18345)
+- [About](#org86bedc8)
+- [Example Usage](#orged18920)
+- [Installation](#org2937e54)
+- [Development](#org0e0ee1b)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org253dbd2"></a>
+<a id="org86bedc8"></a>
 
 # About
 
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org0d5b854"></a>
+<a id="orged18920"></a>
 
 # Example Usage
 
@@ -52,12 +52,12 @@ hmi.power_on_cluster(cluster_address)
 prism_address = 2
 travel_limit_mm = 100
 speed_mm_per_s = 20
-run_current_percent = 50
+current_percent = 50
 stall_threshold = 10
 # a single prism may be homed
-hmi.home_prism(cluster_address, prism_address, travel_limit_mm, speed_mm_per_s, run_current_percent, stall_threshold)
+hmi.home_prism(cluster_address, prism_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
 # or all prisms in a cluster may be homed at the same time
-hmi.home_cluster(cluster_address, travel_limit_mm, speed_mm_per_s, run_current_percent, stall_threshold)
+hmi.home_cluster(cluster_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
 hmi.homed_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 # a single prism may be commanded to move immediately
@@ -69,6 +69,9 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 # but the prisms only move after resuming while pausing
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
+hmi.write_speed_cluster(cluster_address, 40)
+hmi.write_current_cluster(cluster_address, 50)
+hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.power_off_cluster(cluster_address)
 ```
 
@@ -113,6 +116,8 @@ Commands:
   resume-all-clusters
   resume-cluster
   resume-prism
+  write-current-cluster
+  write-speed-cluster
   write-target-prism
   write-targets-cluster
 ```
@@ -130,12 +135,12 @@ maze power-on-cluster $CLUSTER_ADDRESS
 PRISM_ADDRESS=2
 TRAVEL_LIMIT_MM=100
 SPEED_MM_PER_S=20
-RUN_CURRENT_PERCENT=50
+CURRENT_PERCENT=50
 STALL_THRESHOLD=10
 # a single prism may be homed
-maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
+maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
 # or all prisms in a cluster may be homed at the same time
-maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
+maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
 maze homed-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
 # a single prism may be commanded to move immediately
@@ -147,11 +152,14 @@ maze write-targets-cluster $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 # but the prisms only move after resuming while pausing
 maze resume-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
+maze write-speed-cluster $CLUSTER_ADDRESS 40
+maze write-current-cluster $CLUSTER_ADDRESS 50
+maze write-target-prism $CLUSTER_ADDRESS $PRISM_ADDRESS 100
 maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org054b71c"></a>
+<a id="org2937e54"></a>
 
 # Installation
 
@@ -276,7 +284,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org3a18345"></a>
+<a id="org0e0ee1b"></a>
 
 # Development
 

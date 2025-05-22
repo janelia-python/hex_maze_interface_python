@@ -276,24 +276,24 @@ class HexMazeInterface():
         """Turn on power to all clusters prisms."""
         return list(map(self.power_on_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def home_prism(self, cluster_address, prism_address, travel_limit, speed, run_current, stall_threshold):
+    def home_prism(self, cluster_address, prism_address, travel_limit, speed, current, stall_threshold):
         """Home single prism in a single cluster."""
         cmd_fmt = '<BBBBHBBb'
         cmd_len = 9
         cmd_num = 0x09
-        cmd_par = (prism_address, travel_limit, speed, run_current, stall_threshold)
+        cmd_par = (prism_address, travel_limit, speed, current, stall_threshold)
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
             return True
         except MazeException:
             return False
 
-    def home_cluster(self, cluster_address, travel_limit, speed, run_current, stall_threshold):
+    def home_cluster(self, cluster_address, travel_limit, speed, current, stall_threshold):
         """Home all prisms in a single cluster."""
         cmd_fmt = '<BBBHBBb'
         cmd_len = 8
         cmd_num = 0x0A
-        cmd_par = (travel_limit, speed, run_current, stall_threshold)
+        cmd_par = (travel_limit, speed, current, stall_threshold)
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
             return True
@@ -401,4 +401,28 @@ class HexMazeInterface():
         rsp_params_fmt = '<hhhhhhh'
         rsp_params_len = 14
         return self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+
+    def write_speed_cluster(self, cluster_address, speed_mm_per_s):
+        """Write speed to all prisms in a single cluster."""
+        cmd_fmt = '<BBBB'
+        cmd_len = 4
+        cmd_num = 0x13
+        cmd_par = speed_mm_per_s
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
+
+    def write_current_cluster(self, cluster_address, current_percent):
+        """Write current to all prisms in a single cluster."""
+        cmd_fmt = '<BBBB'
+        cmd_len = 4
+        cmd_num = 0x14
+        cmd_par = current_percent
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            return True
+        except MazeException:
+            return False
 
