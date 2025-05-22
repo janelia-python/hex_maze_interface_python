@@ -1,20 +1,20 @@
-- [About](#orgd2b2e8d)
-- [Example Usage](#org4eb14aa)
-- [Installation](#org88f4e7d)
-- [Development](#org2f12821)
+- [About](#orgff40202)
+- [Example Usage](#org830d4aa)
+- [Installation](#orga70c61b)
+- [Development](#org7b35582)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgd2b2e8d"></a>
+<a id="orgff40202"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 3.0.0
+- Version: 3.1.0
 - Python Version: 3.11
 - Release Date: 2025-05-22
 - Creation Date: 2024-01-14
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="org4eb14aa"></a>
+<a id="org830d4aa"></a>
 
 # Example Usage
 
@@ -161,7 +161,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org88f4e7d"></a>
+<a id="orga70c61b"></a>
 
 # Installation
 
@@ -286,7 +286,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org2f12821"></a>
+<a id="org7b35582"></a>
 
 # Development
 

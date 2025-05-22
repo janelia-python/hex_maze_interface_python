@@ -300,9 +300,13 @@ class HexMazeInterface():
         except MazeException:
             return False
 
-    def home_all_clusters(self):
+    def home_all_clusters(self, travel_limit, speed, current, stall_threshold):
         """Home all prisms in all clusters."""
-        return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
+        travel_limit_list = [travel_limit] * HexMazeInterface.PRISM_COUNT
+        speed_list = [speed] * HexMazeInterface.PRISM_COUNT
+        current_list = [current] * HexMazeInterface.PRISM_COUNT
+        stall_threshold_list = [stall_threshold] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES, travel_limit_list, speed_list, current_list, stall_threshold_list))
 
     def homed_cluster(self, cluster_address):
         """Read homed value from every prism in a single cluster."""

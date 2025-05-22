@@ -112,8 +112,12 @@ def home_cluster(hmi, cluster_address, travel_limit, speed, current, stall_thres
 
 @cli.command()
 @click.pass_obj
-def home_all_clusters(hmi):
-    print(hmi.home_all_clusters())
+@click.argument('travel-limit', nargs=1, type=int)
+@click.argument('speed', nargs=1, type=int)
+@click.argument('current', nargs=1, type=int)
+@click.argument('stall-threshold', nargs=1, type=int)
+def home_all_clusters(hmi, travel_limit, speed, current, stall_threshold):
+    print(hmi.home_all_clusters(travel_limit, speed, current, stall_threshold))
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
