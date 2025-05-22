@@ -4,10 +4,10 @@ import os
 
 from .hex_maze_interface import HexMazeInterface, MazeException
 
-
 @click.group()
 @click.pass_context
 def cli(ctx):
+    """Command line interface to the Voigts lab hex maze."""
     ctx.obj = HexMazeInterface(debug=False)
 
 @cli.command()
@@ -175,7 +175,7 @@ def resume_all_clusters(hmi):
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.pass_obj
-def read_actual_positions_cluster(hmi, cluster_address):
-    actual_positions = hmi.read_actual_positions_cluster(cluster_address)
-    print(actual_positions)
+def read_positions_cluster(hmi, cluster_address):
+    positions = hmi.read_positions_cluster(cluster_address)
+    print(positions)
 

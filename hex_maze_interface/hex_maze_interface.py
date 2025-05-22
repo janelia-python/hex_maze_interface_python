@@ -342,7 +342,7 @@ class HexMazeInterface():
         """Pause single prism in a single cluster."""
         cmd_fmt = '<BBBB'
         cmd_len = 4
-        cmd_num = 0x0D
+        cmd_num = 0x0E
         cmd_par = prism_address
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
@@ -354,7 +354,7 @@ class HexMazeInterface():
         """Pause all prisms in a cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
-        cmd_num = 0x0E
+        cmd_num = 0x0F
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
             return True
@@ -369,7 +369,7 @@ class HexMazeInterface():
         """Resume single prism in a single cluster."""
         cmd_fmt = '<BBBB'
         cmd_len = 4
-        cmd_num = 0x0F
+        cmd_num = 0x10
         cmd_par = prism_address
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
@@ -381,7 +381,7 @@ class HexMazeInterface():
         """Resume all prisms in a cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
-        cmd_num = 0x10
+        cmd_num = 0x11
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num)
             return True
@@ -392,11 +392,11 @@ class HexMazeInterface():
         """Resume all prisms in all clusters."""
         return list(map(self.resume_cluster, HexMazeInterface.CLUSTER_ADDRESSES))
 
-    def read_actual_positions_cluster(self, cluster_address):
+    def read_positions_cluster(self, cluster_address):
         """Read actual position from every prism in a single cluster."""
         cmd_fmt = '<BBB'
         cmd_len = 3
-        cmd_num = 0x11
+        cmd_num = 0x12
         cmd_par = None
         rsp_params_fmt = '<hhhhhhh'
         rsp_params_len = 14
