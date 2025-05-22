@@ -258,7 +258,9 @@ Commands:
   resume-all-clusters
   resume-cluster
   resume-prism
+  write-current-all-clusters
   write-current-cluster
+  write-speed-all-clusters
   write-speed-cluster
   write-target-prism
   write-targets-cluster

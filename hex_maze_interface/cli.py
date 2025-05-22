@@ -187,9 +187,21 @@ def write_speed_cluster(hmi, cluster_address, speed_mm_per_s):
     print(hmi.write_speed_cluster(cluster_address, speed_mm_per_s))
 
 @cli.command()
+@click.argument('speed-mm-per-s', nargs=1, type=int)
+@click.pass_obj
+def write_speed_all_clusters(hmi, speed_mm_per_s):
+    print(hmi.write_speed_all_clusters(speed_mm_per_s))
+
+@cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.argument('current-percent', nargs=1, type=int)
 @click.pass_obj
 def write_current_cluster(hmi, cluster_address, current_percent):
     print(hmi.write_current_cluster(cluster_address, current_percent))
+
+@cli.command()
+@click.argument('current-percent', nargs=1, type=int)
+@click.pass_obj
+def write_current_all_clusters(hmi, current_percent):
+    print(hmi.write_current_all_clusters(current_percent))
 

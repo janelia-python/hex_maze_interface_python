@@ -1,13 +1,13 @@
-- [About](#org86bedc8)
-- [Example Usage](#orged18920)
-- [Installation](#org2937e54)
-- [Development](#org0e0ee1b)
+- [About](#org9f1cbe5)
+- [Example Usage](#orgc418a1c)
+- [Installation](#org690a53d)
+- [Development](#org98ab7f0)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org86bedc8"></a>
+<a id="org9f1cbe5"></a>
 
 # About
 
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="orged18920"></a>
+<a id="orgc418a1c"></a>
 
 # Example Usage
 
@@ -116,7 +116,9 @@ Commands:
   resume-all-clusters
   resume-cluster
   resume-prism
+  write-current-all-clusters
   write-current-cluster
+  write-speed-all-clusters
   write-speed-cluster
   write-target-prism
   write-targets-cluster
@@ -159,7 +161,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org2937e54"></a>
+<a id="org690a53d"></a>
 
 # Installation
 
@@ -284,7 +286,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org0e0ee1b"></a>
+<a id="org98ab7f0"></a>
 
 # Development
 

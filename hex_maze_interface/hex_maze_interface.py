@@ -414,6 +414,11 @@ class HexMazeInterface():
         except MazeException:
             return False
 
+    def write_speed_all_clusters(self, speed_mm_per_s):
+        """Write speed to all prisms in all clusters."""
+        speed_mm_per_s_list = [speed_mm_per_s] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.write_speed_cluster, HexMazeInterface.CLUSTER_ADDRESSES, speed_mm_per_s_list))
+
     def write_current_cluster(self, cluster_address, current_percent):
         """Write current to all prisms in a single cluster."""
         cmd_fmt = '<BBBB'
@@ -425,4 +430,9 @@ class HexMazeInterface():
             return True
         except MazeException:
             return False
+
+    def write_current_all_clusters(self, current_percent):
+        """Write current to all prisms in all clusters."""
+        current_percent_list = [current_percent] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.write_current_cluster, HexMazeInterface.CLUSTER_ADDRESSES, current_percent_list))
 
