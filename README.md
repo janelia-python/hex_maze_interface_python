@@ -1,13 +1,13 @@
-- [About](#org9f1cbe5)
-- [Example Usage](#orgc418a1c)
-- [Installation](#org690a53d)
-- [Development](#org98ab7f0)
+- [About](#orgd2b2e8d)
+- [Example Usage](#org4eb14aa)
+- [Installation](#org88f4e7d)
+- [Development](#org2f12821)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org9f1cbe5"></a>
+<a id="orgd2b2e8d"></a>
 
 # About
 
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="orgc418a1c"></a>
+<a id="org4eb14aa"></a>
 
 # Example Usage
 
@@ -161,7 +161,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org690a53d"></a>
+<a id="org88f4e7d"></a>
 
 # Installation
 
@@ -286,7 +286,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org98ab7f0"></a>
+<a id="org2f12821"></a>
 
 # Development
 
