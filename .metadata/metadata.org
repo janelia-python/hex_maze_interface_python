@@ -245,9 +245,16 @@ Commands:
 #+BEGIN_SRC sh :noweb yes
 CLUSTER_ADDRESS=10
 <<command-line-interface>> communicating-cluster $CLUSTER_ADDRESS
-<<command-line-interface>> beep-cluster $CLUSTER_ADDRESS 100
+DURATION_MS=100
+<<command-line-interface>> beep-cluster $CLUSTER_ADDRESS $DURATION_MS
 <<command-line-interface>> power-on-cluster $CLUSTER_ADDRESS
-<<command-line-interface>> home-cluster $CLUSTER_ADDRESS 100 20 10
+PRISM_ADDRESS=2
+TRAVEL_LIMIT_MM=100
+SPEED_MM_PER_S=20
+RUN_CURRENT_PERCENT=50
+STALL_THRESHOLD=10
+<<command-line-interface>> home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
+<<command-line-interface>> home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
 <<command-line-interface>> read-actual-positions $CLUSTER_ADDRESS
 <<command-line-interface>> pause-cluster $CLUSTER_ADDRESS
 <<command-line-interface>> write-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70

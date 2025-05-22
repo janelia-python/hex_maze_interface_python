@@ -1,22 +1,22 @@
-- [About](#org75a1d89)
-- [Example Usage](#orge5e5575)
-- [Installation](#org9ee6662)
-- [Development](#org444e556)
+- [About](#org99e7611)
+- [Example Usage](#orgde63c58)
+- [Installation](#orgc654ef4)
+- [Development](#org9b7582e)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org75a1d89"></a>
+<a id="org99e7611"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 2.2.0
+- Version: 3.0.0
 - Python Version: 3.11
-- Release Date: 2025-05-14
+- Release Date: 2025-05-22
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -33,7 +33,7 @@
 ```
 
 
-<a id="orge5e5575"></a>
+<a id="orgde63c58"></a>
 
 # Example Usage
 
@@ -44,16 +44,16 @@
 from hex_maze_interface import HexMazeInterface, MazeException
 hmi = HexMazeInterface()
 cluster_address = 10
-hmi.check_all()
-hmi.beep_all(duration_ms=100)
-hmi.power_on_all()
-hmi.home_all()
+hmi.communicating_cluster(cluster_address)
+hmi.beep_cluster(cluster_address, duration_ms=100)
+hmi.power_on_cluster(cluster_address)
+hmi.home_cluster(cluster_address)
+actual_positions = hmi.read_actual_positions_cluster(cluster_address)
+hmi.pause_cluster(cluster_address)
+hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
+hmi.resume_cluster(cluster_address)
 actual_positions = hmi.read_actual_positions(cluster_address)
-hmi.pause_all()
-hmi.write_target_positions(cluster_address, (10, 20, 30, 40, 50, 60, 70))
-hmi.resume_all(c)
-actual_positions = hmi.read_actual_positions(cluster_address)
-hmi.power_off_all()
+hmi.power_off_cluster(cluster_address)
 ```
 
 
@@ -103,20 +103,27 @@ Commands:
 
 ```sh
 CLUSTER_ADDRESS=10
-maze check-all
-maze beep-all 100
-maze power-on-all
-maze home-all
+maze communicating-cluster $CLUSTER_ADDRESS
+DURATION_MS=100
+maze beep-cluster $CLUSTER_ADDRESS $DURATION_MS
+maze power-on-cluster $CLUSTER_ADDRESS
+PRISM_ADDRESS=2
+TRAVEL_LIMIT_MM=100
+SPEED_MM_PER_S=20
+RUN_CURRENT_PERCENT=50
+STALL_THRESHOLD=10
+maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
+maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $RUN_CURRENT_PERCENT $STALL_THRESHOLD
 maze read-actual-positions $CLUSTER_ADDRESS
-maze pause-all
+maze pause-cluster $CLUSTER_ADDRESS
 maze write-target-positions $CLUSTER_ADDRESS 10 20 30 40 50 60 70
-maze resume-all
+maze resume-cluster $CLUSTER_ADDRESS
 maze read-actual-positions $CLUSTER_ADDRESS
-maze power-off-all
+maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org9ee6662"></a>
+<a id="orgc654ef4"></a>
 
 # Installation
 
@@ -241,7 +248,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org444e556"></a>
+<a id="org9b7582e"></a>
 
 # Development
 

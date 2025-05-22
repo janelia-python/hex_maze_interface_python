@@ -94,16 +94,21 @@ def power_on_all_clusters(hmi):
 @click.argument('prism-address', nargs=1, type=int)
 @click.argument('travel-limit', nargs=1, type=int)
 @click.argument('speed', nargs=1, type=int)
+@click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_prism(hmi, cluster_address, prism_address, travel_limit, speed, stall_threshold):
-    print(hmi.home_prism(cluster_address, prism_address, travel_limit, speed, stall_threshold))
+def home_prism(hmi, cluster_address, prism_address, travel_limit, speed, run_current, stall_threshold):
+    print(hmi.home_prism(cluster_address, prism_address, travel_limit, speed, run_current, stall_threshold))
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
+@click.argument('travel-limit', nargs=1, type=int)
+@click.argument('speed', nargs=1, type=int)
+@click.argument('run-current', nargs=1, type=int)
+@click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_cluster(hmi, cluster_address):
-    print(hmi.home_cluster(cluster_address))
+def home_cluster(hmi, cluster_address, travel_limit, speed, run_current, stall_threshold):
+    print(hmi.home_cluster(cluster_address, travel_limit, speed, run_current, stall_threshold))
 
 @cli.command()
 @click.pass_obj
