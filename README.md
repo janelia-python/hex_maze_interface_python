@@ -1,14 +1,14 @@
-- [About](#org8c0d0b8)
-- [Example Usage](#orgaa96f1f)
-- [Background](#org5c422ea)
-- [Installation](#orgad5f33f)
-- [Development](#org0ba80e7)
+- [About](#org6e99c0c)
+- [Example Usage](#orgb5c1bb9)
+- [Background](#orgdcd0707)
+- [Installation](#orgd5d651d)
+- [Development](#orgc2b3a2e)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org8c0d0b8"></a>
+<a id="org6e99c0c"></a>
 
 # About
 
@@ -36,7 +36,7 @@
 ```
 
 
-<a id="orgaa96f1f"></a>
+<a id="orgb5c1bb9"></a>
 
 # Example Usage
 
@@ -164,14 +164,14 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org5c422ea"></a>
+<a id="orgdcd0707"></a>
 
 # Background
 
-<img src="./<<img-dir>>/ramp.png" width="<<image-width>>">
+<img src="./documentation/img/ramp.png" width="1920">
 
 
-<a id="orgad5f33f"></a>
+<a id="orgd5d651d"></a>
 
 # Installation
 
@@ -296,7 +296,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org0ba80e7"></a>
+<a id="orgc2b3a2e"></a>
 
 # Development
 

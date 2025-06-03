@@ -321,7 +321,13 @@ STALL_THRESHOLD=10
 
 * Background
 
- #+html: <img src="./<<img-dir>>/ramp.png" width="<<image-width>>">
+#+BEGIN_SRC python :noweb yes :exports results :results output raw
+from pathlib import Path
+path = Path('..') / Path('<<img-dir>>')
+for child in path.iterdir():
+    if '.png' in str(child):
+        print(f'#+html: <img src="./<<img-dir>>/{child.name}" width="<<image-width>>">\n')
+#+END_SRC
 
 * Installation
 
@@ -573,6 +579,7 @@ exit
  (gnu packages emacs)
  (gnu packages emacs-xyz)
  (gnu packages admin)
+ (gnu packages python)
  (gnu packages python-build)
  (gnu packages python-xyz)
  (gnu packages imagemagick)
@@ -596,6 +603,7 @@ exit
                          emacs
                          emacs-org
                          emacs-ox-gfm
+                         python
                          python-wheel
                          python-twine
                          python-ipython
@@ -766,6 +774,17 @@ docker-container-port:
 
 (setq make-backup-files nil)
 (setq org-confirm-babel-evaluate nil)
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((org . t)
+   (emacs-lisp . t)
+   (lisp . t)
+   (shell . t)
+   (python . t)
+   (scheme . t)))
+
+(setq org-babel-python-command "python3")
 
 (setq python-indent-guess-indent-offset t)
 (setq python-indent-guess-indent-offset-verbose nil)

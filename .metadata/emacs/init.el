@@ -9,6 +9,17 @@
 (setq make-backup-files nil)
 (setq org-confirm-babel-evaluate nil)
 
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((org . t)
+   (emacs-lisp . t)
+   (lisp . t)
+   (shell . t)
+   (python . t)
+   (scheme . t)))
+
+(setq org-babel-python-command "python3")
+
 (setq python-indent-guess-indent-offset t)
 (setq python-indent-guess-indent-offset-verbose nil)
 

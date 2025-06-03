@@ -10,6 +10,7 @@
  (gnu packages emacs)
  (gnu packages emacs-xyz)
  (gnu packages admin)
+ (gnu packages python)
  (gnu packages python-build)
  (gnu packages python-xyz)
  (gnu packages imagemagick)
@@ -33,6 +34,7 @@
                          emacs
                          emacs-org
                          emacs-ox-gfm
+                         python
                          python-wheel
                          python-twine
                          python-ipython
