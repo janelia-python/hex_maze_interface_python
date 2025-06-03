@@ -1,22 +1,23 @@
-- [About](#orgff40202)
-- [Example Usage](#org830d4aa)
-- [Installation](#orga70c61b)
-- [Development](#org7b35582)
+- [About](#org8c0d0b8)
+- [Example Usage](#orgaa96f1f)
+- [Background](#org5c422ea)
+- [Installation](#orgad5f33f)
+- [Development](#org0ba80e7)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgff40202"></a>
+<a id="org8c0d0b8"></a>
 
 # About
 
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 3.1.0
+- Version: 4.0.0
 - Python Version: 3.11
-- Release Date: 2025-05-22
+- Release Date: 2025-06-03
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -24,16 +25,18 @@
 - Email: peter@polidoro.io
 - Copyright: 2025 Howard Hughes Medical Institute
 - References:
+  - https://github.com/janelia-experimental-technology/hex-maze
   - https://github.com/janelia-kicad/prism-pcb
   - https://github.com/janelia-kicad/cluster-pcb
   - https://github.com/janelia-arduino/ClusterController
+  - https://github.com/janelia-arduino/TMC51X0
 - Dependencies:
   - click
   - python3-nmap
 ```
 
 
-<a id="org830d4aa"></a>
+<a id="orgaa96f1f"></a>
 
 # Example Usage
 
@@ -161,7 +164,14 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="orga70c61b"></a>
+<a id="org5c422ea"></a>
+
+# Background
+
+<img src="./<<img-dir>>/ramp.png" width="<<image-width>>">
+
+
+<a id="orgad5f33f"></a>
 
 # Installation
 
@@ -286,7 +296,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org7b35582"></a>
+<a id="org0ba80e7"></a>
 
 # Development
 
