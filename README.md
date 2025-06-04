@@ -1,14 +1,15 @@
-- [About](#org6e99c0c)
-- [Example Usage](#orgb5c1bb9)
-- [Background](#orgdcd0707)
-- [Installation](#orgd5d651d)
-- [Development](#orgc2b3a2e)
+- [About](#orged4ccd4)
+- [Protocol](#org6922248)
+- [Background](#org549adbb)
+- [Example Usage](#orgc5e5dc3)
+- [Installation](#orga62d727)
+- [Development](#org653e707)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org6e99c0c"></a>
+<a id="orged4ccd4"></a>
 
 # About
 
@@ -17,7 +18,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 4.0.0
 - Python Version: 3.11
-- Release Date: 2025-06-03
+- Release Date: 2025-06-04
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -36,7 +37,55 @@
 ```
 
 
-<a id="orgb5c1bb9"></a>
+<a id="org6922248"></a>
+
+# Protocol
+
+-   protocol-version = 0x04
+-   prism-count = 7
+-   command = protocol-version command-length command-number command-parameters
+-   response = protocol-version response-length command-number response-parameters
+-   duration units = ms
+-   position units = mm
+-   velocity units = mm/s
+-   current units = percent
+-   stall-threshold -> higher value = lower sensitivity, 0 indifferent value, 1..63 less sensitivity, -1..-64 higher sensitivity
+-   home-parameters = travel-limit, max-velocity, run-current, stall-threshold
+-   controller-parameters = start-velocity, stop-velocity, first-velocity, max-velocity, first-acceleration, max-acceleration, max-deceleration, first-deceleration
+
+| command-name                        | command-format | command-length | command-number | command-parameters             | response-format | response-length | response-parameters    |
+|----------------------------------- |-------------- |-------------- |-------------- |------------------------------ |--------------- |--------------- |---------------------- |
+| invalid-command                     |                |                |                |                                | '<BBB'          | 3               | 0xEE                   |
+| read-cluster-address                | '<BBB'         | 3              | 0x01           |                                | '<BBBB'         | 4               | 0x00..0xFF             |
+| communicating-cluster               | '<BBB'         | 3              | 0x02           |                                | '<BBBL'         | 7               | 0x12345678             |
+| reset-cluster                       | '<BBB'         | 3              | 0x03           |                                | '<BBB'          | 3               |                        |
+| beep-cluster                        | '<BBBH'        | 5              | 0x04           | duration                       | '<BBB'          | 3               |                        |
+| led-off-cluster                     | '<BBB'         | 3              | 0x05           |                                | '<BBB'          | 3               |                        |
+| led-on-cluster                      | '<BBB'         | 3              | 0x06           |                                | '<BBB'          | 3               |                        |
+| power-off-cluster                   | '<BBB'         | 3              | 0x07           |                                | '<BBB'          | 3               |                        |
+| power-on-cluster                    | '<BBB'         | 3              | 0x08           |                                | '<BBB'          | 3               |                        |
+| home-prism                          | '<BBBBHBBb'    | 9              | 0x09           | prism-address, home-parameters | '<BBBB'         | 4               | prism-address          |
+| home-cluster                        | '<BBBHBBb'     | 8              | 0x0A           | home-parameters                | '<BBB'          | 3               |                        |
+| homed-cluster                       | '<BBB'         | 3              | 0x0B           |                                | '<BBBBBBBBBB'   | 10              | 0..1[prism-count]      |
+| write-target-prism                  | '<BBBBH'       | 6              | 0x0C           | prism-address, position        | '<BBBB'         | 4               | prism-address          |
+| write-targets-cluster               | '<BBBHHHHHHH'  | 17             | 0x0D           | position[prism-count]          | '<BBB'          | 3               |                        |
+| pause-prism                         | '<BBBB'        | 4              | 0x0E           | prism-address                  | '<BBBB'         | 4               | prism-address          |
+| pause-cluster                       | '<BBB'         | 3              | 0x0F           |                                | '<BBB'          | 3               |                        |
+| resume-prism                        | '<BBBB'        | 4              | 0x10           | prism-address                  | '<BBBB'         | 4               | prism-address          |
+| resume-cluster                      | '<BBB'         | 3              | 0x11           |                                | '<BBB'          | 3               |                        |
+| read-positions-cluster              | '<BBB'         | 3              | 0x12           |                                | '<BBBhhhhhhh'   | 17              | -1..32767[prism-count] |
+| write-run-current-cluster           | '<BBBB'        | 4              | 0x13           | current                        | '<BBB'          | 3               |                        |
+| write-controller-parameters-cluster | '<BBBBBBBBBBB' | 11             | 0x14           | controller-parameters          | '<BBB'          | 3               |                        |
+
+
+<a id="org549adbb"></a>
+
+# Background
+
+<img src="./documentation/img/ramp.png" width="1920">
+
+
+<a id="orgc5e5dc3"></a>
 
 # Example Usage
 
@@ -44,7 +93,7 @@
 ## Python
 
 ```python
-from hex_maze_interface import HexMazeInterface, MazeException
+from hex_maze_interface import HexMazeInterface, MazeException, HomeParameters, ControllerParameters
 hmi = HexMazeInterface()
 cluster_address = 10
 hmi.communicating_cluster(cluster_address)
@@ -53,14 +102,15 @@ duration_ms = 100
 hmi.beep_cluster(cluster_address, duration_ms)
 hmi.power_on_cluster(cluster_address)
 prism_address = 2
-travel_limit_mm = 100
-speed_mm_per_s = 20
-current_percent = 50
-stall_threshold = 10
+home_parameters = HomeParameters()
+home_parameters.travel_limit = 100
+home_parameters.max_velocity = 20
+home_parameters.run_current = 50
+home_parameters.stall_threshold = 10
 # a single prism may be homed
-hmi.home_prism(cluster_address, prism_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
+hmi.home_prism(cluster_address, prism_address, home_parameters)
 # or all prisms in a cluster may be homed at the same time
-hmi.home_cluster(cluster_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
+hmi.home_cluster(cluster_address, home_parameters)
 hmi.homed_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 # a single prism may be commanded to move immediately
@@ -73,7 +123,7 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 hmi.write_speed_cluster(cluster_address, 40)
-hmi.write_current_cluster(cluster_address, 50)
+hmi.write_run_current_cluster(cluster_address, 50)
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.power_off_cluster(cluster_address)
 ```
@@ -119,8 +169,8 @@ Commands:
   resume-all-clusters
   resume-cluster
   resume-prism
-  write-current-all-clusters
-  write-current-cluster
+  write-run-current-all-clusters
+  write-run-current-cluster
   write-speed-all-clusters
   write-speed-cluster
   write-target-prism
@@ -138,14 +188,14 @@ DURATION_MS=100
 maze beep-cluster $CLUSTER_ADDRESS $DURATION_MS
 maze power-on-cluster $CLUSTER_ADDRESS
 PRISM_ADDRESS=2
-TRAVEL_LIMIT_MM=100
-SPEED_MM_PER_S=20
-CURRENT_PERCENT=50
+TRAVEL_LIMIT=100
+MAX_VELOCITY=20
+RUN_CURRENT=50
 STALL_THRESHOLD=10
 # a single prism may be homed
-maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
+maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 # or all prisms in a cluster may be homed at the same time
-maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
+maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 maze homed-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
 # a single prism may be commanded to move immediately
@@ -158,20 +208,13 @@ maze write-targets-cluster $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 maze resume-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
 maze write-speed-cluster $CLUSTER_ADDRESS 40
-maze write-current-cluster $CLUSTER_ADDRESS 50
+maze write-run-current-cluster $CLUSTER_ADDRESS 50
 maze write-target-prism $CLUSTER_ADDRESS $PRISM_ADDRESS 100
 maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="orgdcd0707"></a>
-
-# Background
-
-<img src="./documentation/img/ramp.png" width="1920">
-
-
-<a id="orgd5d651d"></a>
+<a id="orga62d727"></a>
 
 # Installation
 
@@ -296,7 +339,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="orgc2b3a2e"></a>
+<a id="org653e707"></a>
 
 # Development
 

@@ -2,7 +2,7 @@
 import click
 import os
 
-from .hex_maze_interface import HexMazeInterface, MazeException
+from .hex_maze_interface import HexMazeInterface, MazeException, HomeParameters, ControllerParameters
 
 @click.group()
 @click.pass_context
@@ -93,31 +93,34 @@ def power_on_all_clusters(hmi):
 @click.argument('cluster-address', nargs=1, type=int)
 @click.argument('prism-address', nargs=1, type=int)
 @click.argument('travel-limit', nargs=1, type=int)
-@click.argument('speed', nargs=1, type=int)
-@click.argument('current', nargs=1, type=int)
+@click.argument('max-velocity', nargs=1, type=int)
+@click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_prism(hmi, cluster_address, prism_address, travel_limit, speed, current, stall_threshold):
-    print(hmi.home_prism(cluster_address, prism_address, travel_limit, speed, current, stall_threshold))
+def home_prism(hmi, cluster_address, prism_address, travel_limit, max_velocity, run_current, stall_threshold):
+    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+    print(hmi.home_prism(cluster_address, prism_address, home_parameters))
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
 @click.argument('travel-limit', nargs=1, type=int)
-@click.argument('speed', nargs=1, type=int)
-@click.argument('current', nargs=1, type=int)
+@click.argument('max-velocity', nargs=1, type=int)
+@click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_cluster(hmi, cluster_address, travel_limit, speed, current, stall_threshold):
-    print(hmi.home_cluster(cluster_address, travel_limit, speed, current, stall_threshold))
+def home_cluster(hmi, cluster_address, travel_limit, max_velocity, run_current, stall_threshold):
+    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+    print(hmi.home_cluster(cluster_address, home_parameters))
 
 @cli.command()
 @click.pass_obj
 @click.argument('travel-limit', nargs=1, type=int)
-@click.argument('speed', nargs=1, type=int)
-@click.argument('current', nargs=1, type=int)
+@click.argument('max-velocity', nargs=1, type=int)
+@click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
-def home_all_clusters(hmi, travel_limit, speed, current, stall_threshold):
-    print(hmi.home_all_clusters(travel_limit, speed, current, stall_threshold))
+def home_all_clusters(hmi, travel_limit, max_velocity, run-current, stall_threshold):
+    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+    print(hmi.home_all_clusters(home_parameters))
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
@@ -185,6 +188,19 @@ def read_positions_cluster(hmi, cluster_address):
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
+@click.argument('current-percent', nargs=1, type=int)
+@click.pass_obj
+def write_run_current_cluster(hmi, cluster_address, current_percent):
+    print(hmi.write_run_current_cluster(cluster_address, current_percent))
+
+@cli.command()
+@click.argument('current-percent', nargs=1, type=int)
+@click.pass_obj
+def write_run_current_all_clusters(hmi, current_percent):
+    print(hmi.write_run_current_all_clusters(current_percent))
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
 @click.argument('speed-mm-per-s', nargs=1, type=int)
 @click.pass_obj
 def write_speed_cluster(hmi, cluster_address, speed_mm_per_s):
@@ -195,17 +211,4 @@ def write_speed_cluster(hmi, cluster_address, speed_mm_per_s):
 @click.pass_obj
 def write_speed_all_clusters(hmi, speed_mm_per_s):
     print(hmi.write_speed_all_clusters(speed_mm_per_s))
-
-@cli.command()
-@click.argument('cluster-address', nargs=1, type=int)
-@click.argument('current-percent', nargs=1, type=int)
-@click.pass_obj
-def write_current_cluster(hmi, cluster_address, current_percent):
-    print(hmi.write_current_cluster(cluster_address, current_percent))
-
-@cli.command()
-@click.argument('current-percent', nargs=1, type=int)
-@click.pass_obj
-def write_current_all_clusters(hmi, current_percent):
-    print(hmi.write_current_all_clusters(current_percent))
 

@@ -53,7 +53,7 @@ python-nmap
 
 #+NAME: python-import
 #+BEGIN_SRC text :exports none :noweb yes
-HexMazeInterface, MazeException
+HexMazeInterface, MazeException, HomeParameters, ControllerParameters
 #+END_SRC
 
 #+NAME: command-line-interface
@@ -89,7 +89,6 @@ documentation
 #+BEGIN_SRC text :exports none :noweb yes
 <<documentation-dir>>/img
 #+END_SRC
-
 
 * General and Derived Variables                                    :noexport:
 
@@ -198,6 +197,54 @@ Python 3
   - <<python-dependencies>>
 #+END_SRC
 
+* Protocol
+
+- protocol-version = 0x04
+- prism-count = 7
+- command = protocol-version command-length command-number command-parameters
+- response = protocol-version response-length command-number response-parameters
+- duration units = ms
+- position units = mm
+- velocity units = mm/s
+- current units = percent
+- stall-threshold -> higher value = lower sensitivity, 0 indifferent value, 1..63 less sensitivity, -1..-64 higher sensitivity
+- home-parameters = travel-limit, max-velocity, run-current, stall-threshold
+- controller-parameters = start-velocity, stop-velocity, first-velocity, max-velocity, first-acceleration, max-acceleration, max-deceleration, first-deceleration
+
+| command-name                        | command-format | command-length | command-number | command-parameters             | response-format | response-length | response-parameters    |
+|-------------------------------------+----------------+----------------+----------------+--------------------------------+-----------------+-----------------+------------------------|
+| invalid-command                     |                |                |                |                                | '<BBB'          |               3 | 0xEE                   |
+| read-cluster-address                | '<BBB'         |              3 |           0x01 |                                | '<BBBB'         |               4 | 0x00..0xFF             |
+| communicating-cluster               | '<BBB'         |              3 |           0x02 |                                | '<BBBL'         |               7 | 0x12345678             |
+| reset-cluster                       | '<BBB'         |              3 |           0x03 |                                | '<BBB'          |               3 |                        |
+| beep-cluster                        | '<BBBH'        |              5 |           0x04 | duration                       | '<BBB'          |               3 |                        |
+| led-off-cluster                     | '<BBB'         |              3 |           0x05 |                                | '<BBB'          |               3 |                        |
+| led-on-cluster                      | '<BBB'         |              3 |           0x06 |                                | '<BBB'          |               3 |                        |
+| power-off-cluster                   | '<BBB'         |              3 |           0x07 |                                | '<BBB'          |               3 |                        |
+| power-on-cluster                    | '<BBB'         |              3 |           0x08 |                                | '<BBB'          |               3 |                        |
+| home-prism                          | '<BBBBHBBb'    |              9 |           0x09 | prism-address, home-parameters | '<BBBB'         |               4 | prism-address          |
+| home-cluster                        | '<BBBHBBb'     |              8 |           0x0A | home-parameters                | '<BBB'          |               3 |                        |
+| homed-cluster                       | '<BBB'         |              3 |           0x0B |                                | '<BBBBBBBBBB'   |              10 | 0..1[prism-count]      |
+| write-target-prism                  | '<BBBBH'       |              6 |           0x0C | prism-address, position        | '<BBBB'         |               4 | prism-address          |
+| write-targets-cluster               | '<BBBHHHHHHH'  |             17 |           0x0D | position[prism-count]          | '<BBB'          |               3 |                        |
+| pause-prism                         | '<BBBB'        |              4 |           0x0E | prism-address                  | '<BBBB'         |               4 | prism-address          |
+| pause-cluster                       | '<BBB'         |              3 |           0x0F |                                | '<BBB'          |               3 |                        |
+| resume-prism                        | '<BBBB'        |              4 |           0x10 | prism-address                  | '<BBBB'         |               4 | prism-address          |
+| resume-cluster                      | '<BBB'         |              3 |           0x11 |                                | '<BBB'          |               3 |                        |
+| read-positions-cluster              | '<BBB'         |              3 |           0x12 |                                | '<BBBhhhhhhh'   |              17 | -1..32767[prism-count] |
+| write-run-current-cluster           | '<BBBB'        |              4 |           0x13 | current                        | '<BBB'          |               3 |                        |
+| write-controller-parameters-cluster | '<BBBBBBBBBBB' |             11 |           0x14 | controller-parameters          | '<BBB'          |               3 |                        |
+
+* Background
+
+#+BEGIN_SRC python :noweb yes :exports results :results output raw
+from pathlib import Path
+path = Path('..') / Path('<<img-dir>>')
+for child in path.iterdir():
+    if '.png' in str(child):
+        print(f'#+html: <img src="./<<img-dir>>/{child.name}" width="<<image-width>>">\n')
+#+END_SRC
+
 * Example Usage
 
 ** Python
@@ -212,14 +259,15 @@ duration_ms = 100
 hmi.beep_cluster(cluster_address, duration_ms)
 hmi.power_on_cluster(cluster_address)
 prism_address = 2
-travel_limit_mm = 100
-speed_mm_per_s = 20
-current_percent = 50
-stall_threshold = 10
+home_parameters = HomeParameters()
+home_parameters.travel_limit = 100
+home_parameters.max_velocity = 20
+home_parameters.run_current = 50
+home_parameters.stall_threshold = 10
 # a single prism may be homed
-hmi.home_prism(cluster_address, prism_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
+hmi.home_prism(cluster_address, prism_address, home_parameters)
 # or all prisms in a cluster may be homed at the same time
-hmi.home_cluster(cluster_address, travel_limit_mm, speed_mm_per_s, current_percent, stall_threshold)
+hmi.home_cluster(cluster_address, home_parameters)
 hmi.homed_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 # a single prism may be commanded to move immediately
@@ -232,7 +280,7 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 hmi.write_speed_cluster(cluster_address, 40)
-hmi.write_current_cluster(cluster_address, 50)
+hmi.write_run_current_cluster(cluster_address, 50)
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.power_off_cluster(cluster_address)
 #+END_SRC
@@ -276,8 +324,8 @@ Commands:
   resume-all-clusters
   resume-cluster
   resume-prism
-  write-current-all-clusters
-  write-current-cluster
+  write-run-current-all-clusters
+  write-run-current-cluster
   write-speed-all-clusters
   write-speed-cluster
   write-target-prism
@@ -294,14 +342,14 @@ DURATION_MS=100
 <<command-line-interface>> beep-cluster $CLUSTER_ADDRESS $DURATION_MS
 <<command-line-interface>> power-on-cluster $CLUSTER_ADDRESS
 PRISM_ADDRESS=2
-TRAVEL_LIMIT_MM=100
-SPEED_MM_PER_S=20
-CURRENT_PERCENT=50
+TRAVEL_LIMIT=100
+MAX_VELOCITY=20
+RUN_CURRENT=50
 STALL_THRESHOLD=10
 # a single prism may be homed
-<<command-line-interface>> home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
+<<command-line-interface>> home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 # or all prisms in a cluster may be homed at the same time
-<<command-line-interface>> home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT_MM $SPEED_MM_PER_S $CURRENT_PERCENT $STALL_THRESHOLD
+<<command-line-interface>> home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 <<command-line-interface>> homed-cluster $CLUSTER_ADDRESS
 <<command-line-interface>> read-positions-cluster $CLUSTER_ADDRESS
 # a single prism may be commanded to move immediately
@@ -314,19 +362,9 @@ STALL_THRESHOLD=10
 <<command-line-interface>> resume-cluster $CLUSTER_ADDRESS
 <<command-line-interface>> read-positions-cluster $CLUSTER_ADDRESS
 <<command-line-interface>> write-speed-cluster $CLUSTER_ADDRESS 40
-<<command-line-interface>> write-current-cluster $CLUSTER_ADDRESS 50
+<<command-line-interface>> write-run-current-cluster $CLUSTER_ADDRESS 50
 <<command-line-interface>> write-target-prism $CLUSTER_ADDRESS $PRISM_ADDRESS 100
 <<command-line-interface>> power-off-cluster $CLUSTER_ADDRESS
-#+END_SRC
-
-* Background
-
-#+BEGIN_SRC python :noweb yes :exports results :results output raw
-from pathlib import Path
-path = Path('..') / Path('<<img-dir>>')
-for child in path.iterdir():
-    if '.png' in str(child):
-        print(f'#+html: <img src="./<<img-dir>>/{child.name}" width="<<image-width>>">\n')
 #+END_SRC
 
 * Installation

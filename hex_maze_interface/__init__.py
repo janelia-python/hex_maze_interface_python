@@ -10,4 +10,4 @@ from hex_maze_interface.__about__ import (
     __url__,
     __version__)
 
-from .hex_maze_interface import HexMazeInterface, MazeException
+from .hex_maze_interface import HexMazeInterface, MazeException, HomeParameters, ControllerParameters
