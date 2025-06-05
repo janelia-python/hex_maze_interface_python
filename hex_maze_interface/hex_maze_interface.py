@@ -339,11 +339,8 @@ class HexMazeInterface():
 
     def home_all_clusters(self, home_parameters):
         """Home all prisms in all clusters."""
-        travel_limit_list = [home_parameters.travel_limit] * HexMazeInterface.PRISM_COUNT
-        max_velocity_list = [home_parameters.max_velocity] * HexMazeInterface.PRISM_COUNT
-        run_current_list = [home_parameters.run_current] * HexMazeInterface.PRISM_COUNT
-        stall_threshold_list = [home_parameters.stall_threshold] * HexMazeInterface.PRISM_COUNT
-        return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES, travel_limit_list, max_velocity_list, run_current_list, stall_threshold_list))
+        home_parameters_list = [home_parameters] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.home_cluster, HexMazeInterface.CLUSTER_ADDRESSES, home_parameters_list))
 
     def homed_cluster(self, cluster_address):
         """Read homed value from every prism in a single cluster."""
@@ -460,20 +457,27 @@ class HexMazeInterface():
         current_percent_list = [current_percent] * HexMazeInterface.PRISM_COUNT
         return list(map(self.write_run_current_cluster, HexMazeInterface.CLUSTER_ADDRESSES, current_percent_list))
 
-    def write_controller_parameters_cluster(self, cluster_address, speed_mm_per_s):
+    def write_controller_parameters_cluster(self, cluster_address, controller_parameters):
         """Write controller parameters to all prisms in a single cluster."""
-        cmd_fmt = '<BBBB'
-        cmd_len = 4
-        cmd_num = 0x13
-        cmd_par = speed_mm_per_s
+        cmd_fmt = '<BBBBBBBBBBB'
+        cmd_len = 11
+        cmd_num = 0x14
+        cmd_par = (controller_parameters.start_velocity,
+                   controller_parameters.stop_velocity,
+                   controller_parameters.first_velocity,
+                   controller_parameters.max_velocity,
+                   controller_parameters.first_acceleration,
+                   controller_parameters.max_acceleration,
+                   controller_parameters.max_deceleration,
+                   controller_parameters.first_deceleration)
         try:
             self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
             return True
         except MazeException:
             return False
 
-    def write_controller_parameters_all_clusters(self, speed_mm_per_s):
+    def write_controller_parameters_all_clusters(self, controller_parameters):
         """Write controller parameters to all prisms in all clusters."""
-        speed_mm_per_s_list = [speed_mm_per_s] * HexMazeInterface.PRISM_COUNT
-        return list(map(self.write_speed_cluster, HexMazeInterface.CLUSTER_ADDRESSES, speed_mm_per_s_list))
+        controller_parameters_list = [controller_parameters] * HexMazeInterface.PRISM_COUNT
+        return list(map(self.write_controller_parameters_cluster, HexMazeInterface.CLUSTER_ADDRESSES, controller_parameters_list))
 

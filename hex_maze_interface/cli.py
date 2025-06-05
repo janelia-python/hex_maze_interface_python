@@ -97,8 +97,17 @@ def power_on_all_clusters(hmi):
 @click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_prism(hmi, cluster_address, prism_address, travel_limit, max_velocity, run_current, stall_threshold):
-    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+def home_prism(hmi,
+               cluster_address,
+               prism_address,
+               travel_limit,
+               max_velocity,
+               run_current,
+               stall_threshold):
+    home_parameters = HomeParameters(travel_limit,
+                                     max_velocity,
+                                     run_current,
+                                     stall_threshold)
     print(hmi.home_prism(cluster_address, prism_address, home_parameters))
 
 @cli.command()
@@ -108,8 +117,16 @@ def home_prism(hmi, cluster_address, prism_address, travel_limit, max_velocity, 
 @click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
 @click.pass_obj
-def home_cluster(hmi, cluster_address, travel_limit, max_velocity, run_current, stall_threshold):
-    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+def home_cluster(hmi,
+                 cluster_address,
+                 travel_limit,
+                 max_velocity,
+                 run_current,
+                 stall_threshold):
+    home_parameters = HomeParameters(travel_limit,
+                                     max_velocity,
+                                     run_current,
+                                     stall_threshold)
     print(hmi.home_cluster(cluster_address, home_parameters))
 
 @cli.command()
@@ -118,8 +135,15 @@ def home_cluster(hmi, cluster_address, travel_limit, max_velocity, run_current, 
 @click.argument('max-velocity', nargs=1, type=int)
 @click.argument('run-current', nargs=1, type=int)
 @click.argument('stall-threshold', nargs=1, type=int)
-def home_all_clusters(hmi, travel_limit, max_velocity, run-current, stall_threshold):
-    home_parameters = HomeParameters(travel_limit, max_velocity, run_current, stall_threshold)
+def home_all_clusters(hmi,
+                      travel_limit,
+                      max_velocity,
+                      run_current,
+                      stall_threshold):
+    home_parameters = HomeParameters(travel_limit,
+                                     max_velocity,
+                                     run_current,
+                                     stall_threshold)
     print(hmi.home_all_clusters(home_parameters))
 
 @cli.command()
@@ -201,14 +225,61 @@ def write_run_current_all_clusters(hmi, current_percent):
 
 @cli.command()
 @click.argument('cluster-address', nargs=1, type=int)
-@click.argument('speed-mm-per-s', nargs=1, type=int)
+@click.argument('start-velocity', nargs=1, type=int)
+@click.argument('stop-velocity', nargs=1, type=int)
+@click.argument('first-velocity', nargs=1, type=int)
+@click.argument('max-velocity', nargs=1, type=int)
+@click.argument('first-acceleration', nargs=1, type=int)
+@click.argument('max-acceleration', nargs=1, type=int)
+@click.argument('max-deceleration', nargs=1, type=int)
+@click.argument('first-deceleration', nargs=1, type=int)
 @click.pass_obj
-def write_speed_cluster(hmi, cluster_address, speed_mm_per_s):
-    print(hmi.write_speed_cluster(cluster_address, speed_mm_per_s))
+def write_controller_parameters_cluster(hmi,
+                                        cluster_address,
+                                        start_velocity,
+                                        stop_velocity,
+                                        first_velocity,
+                                        max_velocity,
+                                        first_acceleration,
+                                        max_acceleration,
+                                        max_deceleration,
+                                        first_deceleration):
+    controller_parameters = ControllerParameters(start_velocity,
+                                                 stop_velocity,
+                                                 first_velocity,
+                                                 max_velocity,
+                                                 first_acceleration,
+                                                 max_acceleration,
+                                                 max_deceleration,
+                                                 first_deceleration)
+    print(hmi.write_controller_parameters_cluster(cluster_address, controller_parameters))
 
 @cli.command()
-@click.argument('speed-mm-per-s', nargs=1, type=int)
+@click.argument('start-velocity', nargs=1, type=int)
+@click.argument('stop-velocity', nargs=1, type=int)
+@click.argument('first-velocity', nargs=1, type=int)
+@click.argument('max-velocity', nargs=1, type=int)
+@click.argument('first-acceleration', nargs=1, type=int)
+@click.argument('max-acceleration', nargs=1, type=int)
+@click.argument('max-deceleration', nargs=1, type=int)
+@click.argument('first-deceleration', nargs=1, type=int)
 @click.pass_obj
-def write_speed_all_clusters(hmi, speed_mm_per_s):
-    print(hmi.write_speed_all_clusters(speed_mm_per_s))
+def write_controller_parameters_all_clusters(hmi,
+                                             start_velocity,
+                                             stop_velocity,
+                                             first_velocity,
+                                             max_velocity,
+                                             first_acceleration,
+                                             max_acceleration,
+                                             max_deceleration,
+                                             first_deceleration):
+    controller_parameters = ControllerParameters(start_velocity,
+                                                 stop_velocity,
+                                                 first_velocity,
+                                                 max_velocity,
+                                                 first_acceleration,
+                                                 max_acceleration,
+                                                 max_deceleration,
+                                                 first_deceleration)
+    print(hmi.write_controller_parameters_all_clusters(controller_parameters))
 
