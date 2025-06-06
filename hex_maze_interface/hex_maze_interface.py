@@ -452,6 +452,15 @@ class HexMazeInterface():
         except MazeException:
             return False
 
+    def read_run_current_cluster(self, cluster_address):
+        """Read run current for all prisms in a single cluster."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x14
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
+        return self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+
     def write_run_current_all_clusters(self, current_percent):
         """Write run current to all prisms in all clusters."""
         current_percent_list = [current_percent] * HexMazeInterface.PRISM_COUNT
@@ -461,7 +470,7 @@ class HexMazeInterface():
         """Write controller parameters to all prisms in a single cluster."""
         cmd_fmt = '<BBBBBBBBBBB'
         cmd_len = 11
-        cmd_num = 0x14
+        cmd_num = 0x15
         cmd_par = (controller_parameters.start_velocity,
                    controller_parameters.stop_velocity,
                    controller_parameters.first_velocity,

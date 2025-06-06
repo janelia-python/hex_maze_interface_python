@@ -232,8 +232,10 @@ Python 3
 | resume-prism                        | '<BBBB'        |              4 |           0x10 | prism-address                  | '<BBBB'         |               4 | prism-address          |
 | resume-cluster                      | '<BBB'         |              3 |           0x11 |                                | '<BBB'          |               3 |                        |
 | read-positions-cluster              | '<BBB'         |              3 |           0x12 |                                | '<BBBhhhhhhh'   |              17 | -1..32767[prism-count] |
-| write-run-current-cluster           | '<BBBB'        |              4 |           0x13 | current                        | '<BBB'          |               3 |                        |
-| write-controller-parameters-cluster | '<BBBBBBBBBBB' |             11 |           0x14 | controller-parameters          | '<BBB'          |               3 |                        |
+| write-run-current-cluster           | '<BBBB'        |              4 |           0x13 | run-current                    | '<BBB'          |               3 |                        |
+| read-run-current-cluster            | '<BBB'         |              3 |           0x14 |                                | '<BBBB'         |               4 | run-current            |
+| write-controller-parameters-cluster | '<BBBBBBBBBBB' |             11 |           0x15 | controller-parameters          | '<BBB'          |               3 |                        |
+| read-controller-parameters-cluster  | '<BBB'         |              3 |           0x16 |                                | '<BBBBBBBBBBB'  |              11 | controller-parameters  |
 
 * Background
 
