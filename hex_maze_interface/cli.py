@@ -218,6 +218,13 @@ def write_run_current_cluster(hmi, cluster_address, current_percent):
     print(hmi.write_run_current_cluster(cluster_address, current_percent))
 
 @cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def read_run_current_cluster(hmi, cluster_address):
+    run_current = hmi.read_run_current_cluster(cluster_address)
+    print(run_current)
+
+@cli.command()
 @click.argument('current-percent', nargs=1, type=int)
 @click.pass_obj
 def write_run_current_all_clusters(hmi, current_percent):
@@ -282,4 +289,11 @@ def write_controller_parameters_all_clusters(hmi,
                                                  max_deceleration,
                                                  first_deceleration)
     print(hmi.write_controller_parameters_all_clusters(controller_parameters))
+
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.pass_obj
+def read_controller_parameters_cluster(hmi, cluster_address):
+    controller_parameters = hmi.read_controller_parameters_cluster(cluster_address)
+    print(controller_parameters)
 

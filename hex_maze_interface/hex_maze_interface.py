@@ -34,6 +34,12 @@ class HomeParameters:
         self.run_current = run_current
         self.stall_threshold = stall_threshold
 
+    def __str__(self):
+        s = ''
+        for key, value in vars(self).items():
+            s += f'{key} = {value}\n'
+        return s
+
 class ControllerParameters:
     def __init__(self,
                  start_velocity=1,
@@ -52,6 +58,12 @@ class ControllerParameters:
         self.max_acceleration = max_acceleration
         self.max_deceleration = max_deceleration
         self.first_deceleration = first_deceleration
+
+    def __str__(self):
+        s = ''
+        for key, value in vars(self).items():
+            s += f'{key} = {value}\n'
+        return s
 
 class HexMazeInterface():
     PORT = 7777
@@ -457,6 +469,7 @@ class HexMazeInterface():
         cmd_fmt = '<BBB'
         cmd_len = 3
         cmd_num = 0x14
+        cmd_par = None
         rsp_params_fmt = '<B'
         rsp_params_len = 1
         return self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
@@ -484,6 +497,17 @@ class HexMazeInterface():
             return True
         except MazeException:
             return False
+
+    def read_controller_parameters_cluster(self, cluster_address):
+        """Read controller parameters for all prisms in a single cluster."""
+        cmd_fmt = '<BBB'
+        cmd_len = 3
+        cmd_num = 0x16
+        cmd_par = None
+        rsp_params_fmt = '<BBBBBBBB'
+        rsp_params_len = 8
+        controller_parameters_tuple = self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+        return ControllerParameters(*controller_parameters_tuple)
 
     def write_controller_parameters_all_clusters(self, controller_parameters):
         """Write controller parameters to all prisms in all clusters."""

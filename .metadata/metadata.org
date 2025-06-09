@@ -281,7 +281,10 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 # but the prisms only move after resuming while pausing
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
-hmi.write_run_current_cluster(cluster_address, 75)
+print(hmi.read_run_current_cluster(cluster_address))
+hmi.write_run_current_cluster(cluster_address, 80)
+print(hmi.read_run_current_cluster(cluster_address))
+print(hmi.read_controller_parameters_cluster(cluster_address))
 controller_parameters = ControllerParameters()
 controller_parameters.start_velocity = 1
 controller_parameters.stop_velocity = 5
@@ -292,6 +295,7 @@ controller_parameters.max_acceleration = 20
 controller_parameters.max_deceleration = 30
 controller_parameters.first_deceleration = 50
 hmi.write_controller_parameters_cluster(cluster_address, controller_parameters)
+print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.power_off_cluster(cluster_address)
 #+END_SRC
@@ -329,7 +333,9 @@ Commands:
   power-off-cluster
   power-on-all-clusters
   power-on-cluster
+  read-controller-parameters-cluster
   read-positions-cluster
+  read-run-current-cluster
   reset-all-clusters
   reset-cluster
   resume-all-clusters
@@ -372,7 +378,9 @@ STALL_THRESHOLD=10
 # but the prisms only move after resuming while pausing
 <<command-line-interface>> resume-cluster $CLUSTER_ADDRESS
 <<command-line-interface>> read-positions-cluster $CLUSTER_ADDRESS
-<<command-line-interface>> write-run-current-cluster $CLUSTER_ADDRESS 75
+<<command-line-interface>> read-run-current-cluster $CLUSTER_ADDRESS
+<<command-line-interface>> write-run-current-cluster $CLUSTER_ADDRESS 80
+<<command-line-interface>> read-run-current-cluster $CLUSTER_ADDRESS
 START_VELOCITY=1
 STOP_VELOCITY=5
 FIRST_VELOCITY=10

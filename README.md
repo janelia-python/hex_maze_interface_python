@@ -1,15 +1,15 @@
-- [About](#orgd0c1020)
-- [Protocol](#org8ed97d6)
-- [Background](#org2e44819)
-- [Example Usage](#org79227ba)
-- [Installation](#org18b440f)
-- [Development](#org7c6331c)
+- [About](#org691ddd6)
+- [Protocol](#org5c63964)
+- [Background](#org0adfa83)
+- [Example Usage](#org924a846)
+- [Installation](#org6b9d657)
+- [Development](#org2e80435)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgd0c1020"></a>
+<a id="org691ddd6"></a>
 
 # About
 
@@ -18,7 +18,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 4.0.0
 - Python Version: 3.11
-- Release Date: 2025-06-05
+- Release Date: 2025-06-09
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -37,7 +37,7 @@
 ```
 
 
-<a id="org8ed97d6"></a>
+<a id="org5c63964"></a>
 
 # Protocol
 
@@ -74,18 +74,20 @@
 | resume-prism                        | '<BBBB'        | 4              | 0x10           | prism-address                  | '<BBBB'         | 4               | prism-address          |
 | resume-cluster                      | '<BBB'         | 3              | 0x11           |                                | '<BBB'          | 3               |                        |
 | read-positions-cluster              | '<BBB'         | 3              | 0x12           |                                | '<BBBhhhhhhh'   | 17              | -1..32767[prism-count] |
-| write-run-current-cluster           | '<BBBB'        | 4              | 0x13           | current                        | '<BBB'          | 3               |                        |
-| write-controller-parameters-cluster | '<BBBBBBBBBBB' | 11             | 0x14           | controller-parameters          | '<BBB'          | 3               |                        |
+| write-run-current-cluster           | '<BBBB'        | 4              | 0x13           | run-current                    | '<BBB'          | 3               |                        |
+| read-run-current-cluster            | '<BBB'         | 3              | 0x14           |                                | '<BBBB'         | 4               | run-current            |
+| write-controller-parameters-cluster | '<BBBBBBBBBBB' | 11             | 0x15           | controller-parameters          | '<BBB'          | 3               |                        |
+| read-controller-parameters-cluster  | '<BBB'         | 3              | 0x16           |                                | '<BBBBBBBBBBB'  | 11              | controller-parameters  |
 
 
-<a id="org2e44819"></a>
+<a id="org0adfa83"></a>
 
 # Background
 
 <img src="./documentation/img/ramp.png" width="1920">
 
 
-<a id="org79227ba"></a>
+<a id="org924a846"></a>
 
 # Example Usage
 
@@ -122,7 +124,10 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 # but the prisms only move after resuming while pausing
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
-hmi.write_run_current_cluster(cluster_address, 75)
+print(hmi.read_run_current_cluster(cluster_address))
+hmi.write_run_current_cluster(cluster_address, 80)
+print(hmi.read_run_current_cluster(cluster_address))
+print(hmi.read_controller_parameters_cluster(cluster_address))
 controller_parameters = ControllerParameters()
 controller_parameters.start_velocity = 1
 controller_parameters.stop_velocity = 5
@@ -133,6 +138,7 @@ controller_parameters.max_acceleration = 20
 controller_parameters.max_deceleration = 30
 controller_parameters.first_deceleration = 50
 hmi.write_controller_parameters_cluster(cluster_address, controller_parameters)
+print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.power_off_cluster(cluster_address)
 ```
@@ -172,7 +178,9 @@ Commands:
   power-off-cluster
   power-on-all-clusters
   power-on-cluster
+  read-controller-parameters-cluster
   read-positions-cluster
+  read-run-current-cluster
   reset-all-clusters
   reset-cluster
   resume-all-clusters
@@ -216,7 +224,9 @@ maze write-targets-cluster $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 # but the prisms only move after resuming while pausing
 maze resume-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
-maze write-run-current-cluster $CLUSTER_ADDRESS 75
+maze read-run-current-cluster $CLUSTER_ADDRESS
+maze write-run-current-cluster $CLUSTER_ADDRESS 80
+maze read-run-current-cluster $CLUSTER_ADDRESS
 START_VELOCITY=1
 STOP_VELOCITY=5
 FIRST_VELOCITY=10
@@ -233,7 +243,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org18b440f"></a>
+<a id="org6b9d657"></a>
 
 # Installation
 
@@ -358,7 +368,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org7c6331c"></a>
+<a id="org2e80435"></a>
 
 # Development
 
