@@ -1,15 +1,15 @@
-- [About](#org691ddd6)
-- [Protocol](#org5c63964)
-- [Background](#org0adfa83)
-- [Example Usage](#org924a846)
-- [Installation](#org6b9d657)
-- [Development](#org2e80435)
+- [About](#orgd87bd7e)
+- [Protocol](#org25eb2b6)
+- [Background](#org77d42e8)
+- [Example Usage](#org3f43ef9)
+- [Installation](#org05dde9d)
+- [Development](#org64a5ede)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org691ddd6"></a>
+<a id="orgd87bd7e"></a>
 
 # About
 
@@ -18,7 +18,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 4.0.0
 - Python Version: 3.11
-- Release Date: 2025-06-09
+- Release Date: 2025-06-10
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -37,7 +37,7 @@
 ```
 
 
-<a id="org5c63964"></a>
+<a id="org25eb2b6"></a>
 
 # Protocol
 
@@ -52,42 +52,45 @@
 -   stall-threshold -> higher value = lower sensitivity, 0 indifferent value, 1..63 less sensitivity, -1..-64 higher sensitivity
 -   home-parameters = travel-limit, max-velocity, run-current, stall-threshold
 -   controller-parameters = start-velocity, stop-velocity, first-velocity, max-velocity, first-acceleration, max-acceleration, max-deceleration, first-deceleration
+-   double-position = position-0, position-1
 
-| command-name                        | command-format | command-length | command-number | command-parameters             | response-format | response-length | response-parameters    |
-|----------------------------------- |-------------- |-------------- |-------------- |------------------------------ |--------------- |--------------- |---------------------- |
-| invalid-command                     |                |                |                |                                | '<BBB'          | 3               | 0xEE                   |
-| read-cluster-address                | '<BBB'         | 3              | 0x01           |                                | '<BBBB'         | 4               | 0x00..0xFF             |
-| communicating-cluster               | '<BBB'         | 3              | 0x02           |                                | '<BBBL'         | 7               | 0x12345678             |
-| reset-cluster                       | '<BBB'         | 3              | 0x03           |                                | '<BBB'          | 3               |                        |
-| beep-cluster                        | '<BBBH'        | 5              | 0x04           | duration                       | '<BBB'          | 3               |                        |
-| led-off-cluster                     | '<BBB'         | 3              | 0x05           |                                | '<BBB'          | 3               |                        |
-| led-on-cluster                      | '<BBB'         | 3              | 0x06           |                                | '<BBB'          | 3               |                        |
-| power-off-cluster                   | '<BBB'         | 3              | 0x07           |                                | '<BBB'          | 3               |                        |
-| power-on-cluster                    | '<BBB'         | 3              | 0x08           |                                | '<BBB'          | 3               |                        |
-| home-prism                          | '<BBBBHBBb'    | 9              | 0x09           | prism-address, home-parameters | '<BBBB'         | 4               | prism-address          |
-| home-cluster                        | '<BBBHBBb'     | 8              | 0x0A           | home-parameters                | '<BBB'          | 3               |                        |
-| homed-cluster                       | '<BBB'         | 3              | 0x0B           |                                | '<BBBBBBBBBB'   | 10              | 0..1[prism-count]      |
-| write-target-prism                  | '<BBBBH'       | 6              | 0x0C           | prism-address, position        | '<BBBB'         | 4               | prism-address          |
-| write-targets-cluster               | '<BBBHHHHHHH'  | 17             | 0x0D           | position[prism-count]          | '<BBB'          | 3               |                        |
-| pause-prism                         | '<BBBB'        | 4              | 0x0E           | prism-address                  | '<BBBB'         | 4               | prism-address          |
-| pause-cluster                       | '<BBB'         | 3              | 0x0F           |                                | '<BBB'          | 3               |                        |
-| resume-prism                        | '<BBBB'        | 4              | 0x10           | prism-address                  | '<BBBB'         | 4               | prism-address          |
-| resume-cluster                      | '<BBB'         | 3              | 0x11           |                                | '<BBB'          | 3               |                        |
-| read-positions-cluster              | '<BBB'         | 3              | 0x12           |                                | '<BBBhhhhhhh'   | 17              | -1..32767[prism-count] |
-| write-run-current-cluster           | '<BBBB'        | 4              | 0x13           | run-current                    | '<BBB'          | 3               |                        |
-| read-run-current-cluster            | '<BBB'         | 3              | 0x14           |                                | '<BBBB'         | 4               | run-current            |
-| write-controller-parameters-cluster | '<BBBBBBBBBBB' | 11             | 0x15           | controller-parameters          | '<BBB'          | 3               |                        |
-| read-controller-parameters-cluster  | '<BBB'         | 3              | 0x16           |                                | '<BBBBBBBBBBB'  | 11              | controller-parameters  |
+| command-name                        | command-format       | command-length | command-number | command-parameters             | response-format | response-length | response-parameters    |
+|----------------------------------- |-------------------- |-------------- |-------------- |------------------------------ |--------------- |--------------- |---------------------- |
+| invalid-command                     |                      |                |                |                                | '<BBB'          | 3               | 0xEE                   |
+| read-cluster-address                | '<BBB'               | 3              | 0x01           |                                | '<BBBB'         | 4               | 0x00..0xFF             |
+| communicating-cluster               | '<BBB'               | 3              | 0x02           |                                | '<BBBL'         | 7               | 0x12345678             |
+| reset-cluster                       | '<BBB'               | 3              | 0x03           |                                | '<BBB'          | 3               |                        |
+| beep-cluster                        | '<BBBH'              | 5              | 0x04           | duration                       | '<BBB'          | 3               |                        |
+| led-off-cluster                     | '<BBB'               | 3              | 0x05           |                                | '<BBB'          | 3               |                        |
+| led-on-cluster                      | '<BBB'               | 3              | 0x06           |                                | '<BBB'          | 3               |                        |
+| power-off-cluster                   | '<BBB'               | 3              | 0x07           |                                | '<BBB'          | 3               |                        |
+| power-on-cluster                    | '<BBB'               | 3              | 0x08           |                                | '<BBB'          | 3               |                        |
+| home-prism                          | '<BBBBHBBb'          | 9              | 0x09           | prism-address, home-parameters | '<BBBB'         | 4               | prism-address          |
+| home-cluster                        | '<BBBHBBb'           | 8              | 0x0A           | home-parameters                | '<BBB'          | 3               |                        |
+| homed-cluster                       | '<BBB'               | 3              | 0x0B           |                                | '<BBBBBBBBBB'   | 10              | 0..1[prism-count]      |
+| write-target-prism                  | '<BBBBH'             | 6              | 0x0C           | prism-address, position        | '<BBBB'         | 4               | prism-address          |
+| write-targets-cluster               | '<BBBHHHHHHH'        | 17             | 0x0D           | position[prism-count]          | '<BBB'          | 3               |                        |
+| pause-prism                         | '<BBBB'              | 4              | 0x0E           | prism-address                  | '<BBBB'         | 4               | prism-address          |
+| pause-cluster                       | '<BBB'               | 3              | 0x0F           |                                | '<BBB'          | 3               |                        |
+| resume-prism                        | '<BBBB'              | 4              | 0x10           | prism-address                  | '<BBBB'         | 4               | prism-address          |
+| resume-cluster                      | '<BBB'               | 3              | 0x11           |                                | '<BBB'          | 3               |                        |
+| read-positions-cluster              | '<BBB'               | 3              | 0x12           |                                | '<BBBhhhhhhh'   | 17              | -1..32767[prism-count] |
+| write-run-current-cluster           | '<BBBB'              | 4              | 0x13           | run-current                    | '<BBB'          | 3               |                        |
+| read-run-current-cluster            | '<BBB'               | 3              | 0x14           |                                | '<BBBB'         | 4               | run-current            |
+| write-controller-parameters-cluster | '<BBBBBBBBBBB'       | 11             | 0x15           | controller-parameters          | '<BBB'          | 3               |                        |
+| read-controller-parameters-cluster  | '<BBB'               | 3              | 0x16           |                                | '<BBBBBBBBBBB'  | 11              | controller-parameters  |
+| write-double-target-prism           | '<BBBBHH'            | 8              | 0x17           | prism-address, double-position | '<BBBB'         | 4               | prism-address          |
+| write-double-targets-cluster        | '<BBBHHHHHHHHHHHHHH' | 31             | 0x18           | double-position[prism-count]   | '<BBB'          | 3               |                        |
 
 
-<a id="org0adfa83"></a>
+<a id="org77d42e8"></a>
 
 # Background
 
 <img src="./documentation/img/ramp.png" width="1920">
 
 
-<a id="org924a846"></a>
+<a id="org3f43ef9"></a>
 
 # Example Usage
 
@@ -140,6 +143,7 @@ controller_parameters.first_deceleration = 50
 hmi.write_controller_parameters_cluster(cluster_address, controller_parameters)
 print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
+hmi.write_double_target_prism(cluster_address, prism_address, (50, 150))
 hmi.power_off_cluster(cluster_address)
 ```
 
@@ -243,7 +247,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org6b9d657"></a>
+<a id="org05dde9d"></a>
 
 # Installation
 
@@ -368,7 +372,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org2e80435"></a>
+<a id="org64a5ede"></a>
 
 # Development
 

@@ -297,3 +297,11 @@ def read_controller_parameters_cluster(hmi, cluster_address):
     controller_parameters = hmi.read_controller_parameters_cluster(cluster_address)
     print(controller_parameters)
 
+@cli.command()
+@click.argument('cluster-address', nargs=1, type=int)
+@click.argument('prism-address', nargs=1, type=int)
+@click.argument('double-position-mm', nargs=2, type=int)
+@click.pass_obj
+def write_double_target_prism(hmi, cluster_address, prism_address, double_position_mm):
+    print(hmi.write_double_target_prism(cluster_address, prism_address, double_position_mm))
+

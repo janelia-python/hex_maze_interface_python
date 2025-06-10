@@ -328,8 +328,10 @@ class HexMazeInterface():
                    home_parameters.max_velocity,
                    home_parameters.run_current,
                    home_parameters.stall_threshold)
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
         try:
-            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
             return True
         except MazeException:
             return False
@@ -370,8 +372,10 @@ class HexMazeInterface():
         cmd_len = 6
         cmd_num = 0x0C
         cmd_par = (prism_address, position_mm)
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
         try:
-            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
             return True
         except MazeException:
             return False
@@ -394,8 +398,10 @@ class HexMazeInterface():
         cmd_len = 4
         cmd_num = 0x0E
         cmd_par = prism_address
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
         try:
-            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
             return True
         except MazeException:
             return False
@@ -421,8 +427,10 @@ class HexMazeInterface():
         cmd_len = 4
         cmd_num = 0x10
         cmd_par = prism_address
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
         try:
-            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
             return True
         except MazeException:
             return False
@@ -513,4 +521,32 @@ class HexMazeInterface():
         """Write controller parameters to all prisms in all clusters."""
         controller_parameters_list = [controller_parameters] * HexMazeInterface.PRISM_COUNT
         return list(map(self.write_controller_parameters_cluster, HexMazeInterface.CLUSTER_ADDRESSES, controller_parameters_list))
+
+    def write_double_target_prism(self, cluster_address, prism_address, double_position_mm):
+        """Write two target positions to a single prism in a single cluster."""
+        cmd_fmt = '<BBBBHH'
+        cmd_len = 8
+        cmd_num = 0x17
+        cmd_par = (prism_address, *double_position_mm)
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+            return True
+        except MazeException:
+            return False
+
+    def write_double_targets_cluster(self, cluster_address, double_positions_mm):
+        """Write two target positions to all prisms in a single cluster."""
+        cmd_fmt = '<BBBHHHHHHHHHHHHHH'
+        cmd_len = 31
+        cmd_num = 0x18
+        cmd_par = positions_mm
+        rsp_params_fmt = '<B'
+        rsp_params_len = 1
+        try:
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+            return True
+        except MazeException:
+            return False
 
