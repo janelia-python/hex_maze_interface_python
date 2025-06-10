@@ -541,11 +541,9 @@ class HexMazeInterface():
         cmd_fmt = '<BBBHHHHHHHHHHHHHH'
         cmd_len = 31
         cmd_num = 0x18
-        cmd_par = positions_mm
-        rsp_params_fmt = '<B'
-        rsp_params_len = 1
+        cmd_par = sum(double_positions_mm, ()) # flatten 2D tuple
         try:
-            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par, rsp_params_fmt, rsp_params_len)
+            self._send_cluster_cmd_receive_rsp_params(cluster_address, cmd_fmt, cmd_len, cmd_num, cmd_par)
             return True
         except MazeException:
             return False

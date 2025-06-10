@@ -1,15 +1,15 @@
-- [About](#orgd87bd7e)
-- [Protocol](#org25eb2b6)
-- [Background](#org77d42e8)
-- [Example Usage](#org3f43ef9)
-- [Installation](#org05dde9d)
-- [Development](#org64a5ede)
+- [About](#org277ae61)
+- [Protocol](#orgd784e67)
+- [Background](#org32607f4)
+- [Example Usage](#orgbf01df4)
+- [Installation](#orgfdeec6a)
+- [Development](#org91947c9)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="orgd87bd7e"></a>
+<a id="org277ae61"></a>
 
 # About
 
@@ -37,7 +37,7 @@
 ```
 
 
-<a id="org25eb2b6"></a>
+<a id="orgd784e67"></a>
 
 # Protocol
 
@@ -83,14 +83,14 @@
 | write-double-targets-cluster        | '<BBBHHHHHHHHHHHHHH' | 31             | 0x18           | double-position[prism-count]   | '<BBB'          | 3               |                        |
 
 
-<a id="org77d42e8"></a>
+<a id="org32607f4"></a>
 
 # Background
 
 <img src="./documentation/img/ramp.png" width="1920">
 
 
-<a id="org3f43ef9"></a>
+<a id="orgbf01df4"></a>
 
 # Example Usage
 
@@ -144,6 +144,7 @@ hmi.write_controller_parameters_cluster(cluster_address, controller_parameters)
 print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.write_double_target_prism(cluster_address, prism_address, (50, 150))
+hmi.write_double_targets_cluster(cluster_address, ((10,20),(30,40),(50,60),(70,80),(90,100),(110,120),(130,140)))
 hmi.power_off_cluster(cluster_address)
 ```
 
@@ -192,6 +193,7 @@ Commands:
   resume-prism
   write-controller-parameters-all-clusters
   write-controller-parameters-cluster
+  write-double-target-prism
   write-run-current-all-clusters
   write-run-current-cluster
   write-target-prism
@@ -243,11 +245,12 @@ maze write-controller-parameters-cluster $CLUSTER_ADDRESS \
 $START_VELOCITY $STOP_VELOCITY $FIRST_VELOCITY $MAX_VELOCITY $FIRST_ACCELERATION \
 $MAX_ACCELERATION $MAX_DECELERATION $FIRST_DECELERATION
 maze write-target-prism $CLUSTER_ADDRESS $PRISM_ADDRESS 100
+maze write-double-target-prism $CLUSTER_ADDRESS $PRISM_ADDRESS 50 150
 maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="org05dde9d"></a>
+<a id="orgfdeec6a"></a>
 
 # Installation
 
@@ -372,7 +375,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org64a5ede"></a>
+<a id="org91947c9"></a>
 
 # Development
 
