@@ -1,15 +1,15 @@
-- [About](#org277ae61)
-- [Protocol](#orgd784e67)
-- [Background](#org32607f4)
-- [Example Usage](#orgbf01df4)
-- [Installation](#orgfdeec6a)
-- [Development](#org91947c9)
+- [About](#orgad89128)
+- [Protocol](#org1893526)
+- [Background](#org8de352a)
+- [Example Usage](#org4578627)
+- [Installation](#org842bf6b)
+- [Development](#org671fd47)
 
     <!-- This file is generated automatically from metadata -->
     <!-- File edits may be overwritten! -->
 
 
-<a id="org277ae61"></a>
+<a id="orgad89128"></a>
 
 # About
 
@@ -18,7 +18,7 @@
 - Description: Python interface to the Voigts lab hex maze.
 - Version: 4.0.0
 - Python Version: 3.11
-- Release Date: 2025-06-10
+- Release Date: 2025-06-11
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -37,7 +37,7 @@
 ```
 
 
-<a id="orgd784e67"></a>
+<a id="org1893526"></a>
 
 # Protocol
 
@@ -83,14 +83,14 @@
 | write-double-targets-cluster        | '<BBBHHHHHHHHHHHHHH' | 31             | 0x18           | double-position[prism-count]   | '<BBB'          | 3               |                        |
 
 
-<a id="org32607f4"></a>
+<a id="org8de352a"></a>
 
 # Background
 
 <img src="./documentation/img/ramp.png" width="1920">
 
 
-<a id="orgbf01df4"></a>
+<a id="org4578627"></a>
 
 # Example Usage
 
@@ -250,7 +250,7 @@ maze power-off-cluster $CLUSTER_ADDRESS
 ```
 
 
-<a id="orgfdeec6a"></a>
+<a id="org842bf6b"></a>
 
 # Installation
 
@@ -375,7 +375,7 @@ The Python code in this library may be installed in any number of ways, chose on
     ```
 
 
-<a id="org91947c9"></a>
+<a id="org671fd47"></a>
 
 # Development
 
