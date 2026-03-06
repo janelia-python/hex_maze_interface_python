@@ -1,0 +1,13 @@
+{
+  "clusters": [
+    0
+  ],
+  "prisms_per_cluster": 4,
+  "far_pos_A": 9000,
+  "far_pos_B": 100,
+  "near_home_offset": 5,
+  "small_move": 10,
+  "reversals": 8,
+  "cycle_delay_s": 0.2,
+  "log_path": "torture_log.csv"
+}
