@@ -1,5 +1,107 @@
-# This file is generated automatically from metadata
-# File edits may be overwritten!
 [build-system]
-requires = ["setuptools"]
-build-backed = "setuptools.build_meta"
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hex-maze-interface"
+dynamic = ["version"]
+description = "Python interface and CLI for the Voigts lab hex maze."
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "Peter Polidoro", email = "peter@polidoro.io" }]
+keywords = ["hex-maze", "firmware", "cli", "ethernet", "verification"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "click>=8.1",
+  "python3-nmap>=1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "pytest>=8.0",
+  "ruff>=0.11",
+  "twine>=5.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/janelia-python/hex_maze_interface_python"
+Repository = "https://github.com/janelia-python/hex_maze_interface_python"
+Issues = "https://github.com/janelia-python/hex_maze_interface_python/issues"
+Firmware = "https://github.com/janelia-arduino/ClusterController"
+
+[project.scripts]
+maze = "hex_maze_interface.cli:cli"
+
+[tool.setuptools.dynamic]
+version = { attr = "hex_maze_interface.__about__.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["hex_maze_interface*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pixi.workspace]
+name = "hex-maze-interface-python"
+version = "4.0.0"
+description = "Python interface and verification tooling for the Voigts lab hex maze."
+authors = ["Peter Polidoro <peter@polidoro.io>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[tool.pixi.dependencies]
+git = "*"
+
+[tool.pixi.pypi-dependencies]
+"hex-maze-interface" = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { features = ["dev"], solve-group = "default" }
+
+[tool.pixi.tasks]
+python = "python"
+help = "maze --help"
+discover = "maze discover-clusters --json"
+verify = "maze verify-all-clusters --json"
+format = "ruff format ."
+lint = "ruff check ."
+test = "pytest"
+check = [{ task = "lint" }, { task = "test" }]
+build = "python -m build"
+check-dist = "python -m twine check dist/*"
+release-check = [{ task = "check" }, { task = "build" }, { task = "check-dist" }]
+archive = "git archive --format=zip --output=../hex_maze_interface_python.zip HEAD"
+
+[tool.pixi.target.linux-64.dependencies]
+make = "*"
+c-compiler = "*"
+
+[tool.pixi.target.osx-64.dependencies]
+make = "*"
+c-compiler = "*"
+
+[tool.pixi.target.osx-arm64.dependencies]
+make = "*"
+c-compiler = "*"
