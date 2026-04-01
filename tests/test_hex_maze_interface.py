@@ -7,6 +7,7 @@ import pytest
 from hex_maze_interface.hex_maze_interface import (
     ControllerParameters,
     HexMazeInterface,
+    HomeOutcome,
     HomeParameters,
     MazeException,
 )
@@ -64,3 +65,20 @@ def test_home_parameters_string_format() -> None:
     params = HomeParameters()
 
     assert "travel_limit = 500" in str(params)
+
+
+def test_read_home_outcomes_cluster_decodes_enum_values() -> None:
+    hmi = HexMazeInterface()
+    hmi._send_cluster_cmd_receive_rsp_params = lambda *args, **kwargs: (0, 1, 2, 3, 4, 0, 2)
+
+    outcomes = hmi.read_home_outcomes_cluster(10)
+
+    assert outcomes == (
+        HomeOutcome.NONE,
+        HomeOutcome.IN_PROGRESS,
+        HomeOutcome.STALL,
+        HomeOutcome.TARGET_REACHED,
+        HomeOutcome.FAILED,
+        HomeOutcome.NONE,
+        HomeOutcome.STALL,
+    )

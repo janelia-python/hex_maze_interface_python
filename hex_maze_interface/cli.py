@@ -257,6 +257,19 @@ def homed_cluster(hmi: HexMazeInterface, cluster_address: int) -> None:
 
 @cli.command()
 @click.argument("cluster-address", type=int)
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+@pass_hex_maze_interface
+def read_home_outcomes_cluster(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    as_json: bool,
+) -> None:
+    outcomes = [outcome.name.lower() for outcome in hmi.read_home_outcomes_cluster(cluster_address)]
+    _emit(outcomes, as_json=as_json)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
 @click.argument("prism-address", type=int)
 @click.argument("position-mm", type=int)
 @pass_hex_maze_interface

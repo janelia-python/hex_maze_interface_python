@@ -77,6 +77,12 @@ git = "*"
 [tool.pixi.pypi-dependencies]
 "hex-maze-interface" = { path = ".", editable = true }
 
+[tool.pixi.feature.dev.pypi-dependencies]
+pytest = ">=8.0"
+ruff = ">=0.11"
+build = ">=1.2"
+twine = ">=5.1"
+
 [tool.pixi.environments]
 default = { features = ["dev"], solve-group = "default" }
 

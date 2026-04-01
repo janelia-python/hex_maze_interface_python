@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from enum import IntEnum
 import json
 import socket
 import struct
@@ -21,6 +22,14 @@ SOCKET_TIMEOUT_S = 1.0
 
 class MazeException(Exception):
     """Base exception for HexMazeInterface failures."""
+
+
+class HomeOutcome(IntEnum):
+    NONE = 0
+    IN_PROGRESS = 1
+    STALL = 2
+    TARGET_REACHED = 3
+    FAILED = 4
 
 
 @dataclass(slots=True)
@@ -429,6 +438,18 @@ class HexMazeInterface:
 
     def homed_cluster(self, cluster_address: int) -> tuple[int, ...]:
         return self._send_cluster_cmd_receive_rsp_params(cluster_address, "<BBB", 3, 0x0B, None, "<BBBBBBB", 7)
+
+    def read_home_outcomes_cluster(self, cluster_address: int) -> tuple[HomeOutcome, ...]:
+        outcomes = self._send_cluster_cmd_receive_rsp_params(
+            cluster_address,
+            "<BBB",
+            3,
+            0x19,
+            None,
+            "<BBBBBBB",
+            7,
+        )
+        return tuple(HomeOutcome(value) for value in outcomes)
 
     def write_target_prism(self, cluster_address: int, prism_address: int, position_mm: int) -> bool:
         self._validate_prism_address(prism_address)
