@@ -18,6 +18,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised when discovery is un
 
 MILLISECONDS_PER_SECOND = 1000
 SOCKET_TIMEOUT_S = 1.0
+POWER_ON_SETTLE_S = 2.0
 
 
 class MazeException(Exception):
@@ -415,7 +416,10 @@ class HexMazeInterface:
         return [self.power_off_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
 
     def power_on_cluster(self, cluster_address: int) -> bool:
-        return self._bool_command(cluster_address, "<BBB", 3, 0x08)
+        ok = self._bool_command(cluster_address, "<BBB", 3, 0x08)
+        if ok:
+            self._sleep_fn(POWER_ON_SETTLE_S)
+        return ok
 
     def power_on_all_clusters(self) -> list[bool]:
         return [self.power_on_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]

@@ -5,6 +5,7 @@ import struct
 import pytest
 
 from hex_maze_interface.hex_maze_interface import (
+    POWER_ON_SETTLE_S,
     ControllerParameters,
     HexMazeInterface,
     HomeOutcome,
@@ -39,8 +40,14 @@ def test_write_targets_cluster_validates_prism_count() -> None:
 def test_write_double_targets_cluster_validates_pair_structure() -> None:
     hmi = HexMazeInterface()
 
-    with pytest.raises(MazeException, match="double_positions_mm\\[0\\] must contain 2 values, got 1"):
-        hmi.write_double_targets_cluster(10, ((1,), (2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13)))
+    with pytest.raises(
+        MazeException,
+        match="double_positions_mm\\[0\\] must contain 2 values, got 1",
+    ):
+        hmi.write_double_targets_cluster(
+            10,
+            ((1,), (2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13)),
+        )
 
 
 def test_verify_cluster_collects_non_destructive_status() -> None:
@@ -82,3 +89,25 @@ def test_read_home_outcomes_cluster_decodes_enum_values() -> None:
         HomeOutcome.NONE,
         HomeOutcome.STALL,
     )
+
+
+def test_power_on_cluster_waits_for_prism_settle() -> None:
+    sleep_calls: list[float] = []
+    hmi = HexMazeInterface(sleep_fn=sleep_calls.append)
+    hmi._bool_command = lambda *args, **kwargs: True
+
+    ok = hmi.power_on_cluster(10)
+
+    assert ok is True
+    assert sleep_calls == [POWER_ON_SETTLE_S]
+
+
+def test_power_on_cluster_does_not_sleep_on_failure() -> None:
+    sleep_calls: list[float] = []
+    hmi = HexMazeInterface(sleep_fn=sleep_calls.append)
+    hmi._bool_command = lambda *args, **kwargs: False
+
+    ok = hmi.power_on_cluster(10)
+
+    assert ok is False
+    assert sleep_calls == []
