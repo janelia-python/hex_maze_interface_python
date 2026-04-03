@@ -15,7 +15,9 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster", type=int, required=True)
     parser.add_argument("--cycles", type=int, default=3)
+    parser.add_argument("--initial-travel-limit", type=int, default=700)
     parser.add_argument("--travel-limit", type=int, default=400)
+    parser.add_argument("--initial-home-attempts", type=int, default=3)
     parser.add_argument("--max-velocity", type=int, default=20)
     parser.add_argument("--run-current", type=int, default=50)
     parser.add_argument("--stall-threshold", type=int, default=10)
@@ -72,7 +74,7 @@ def _wait_for_home(
             "outcomes": tuple(hmi.read_home_outcomes_cluster(cluster_address)),
             "positions_mm": tuple(hmi.read_positions_cluster(cluster_address)),
         }
-        if all(last["homed"]):
+        if all(outcome != HomeOutcome.IN_PROGRESS for outcome in last["outcomes"]):
             return {
                 "homed": list(last["homed"]),
                 "outcomes": [outcome.name for outcome in last["outcomes"]],
@@ -87,6 +89,29 @@ def _wait_for_home(
     raise MazeException(
         f"cluster {cluster_address} did not finish homing; "
         f"last state was {last}"
+    )
+
+
+def _home_until_all_homed(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    home_parameters: HomeParameters,
+    timeout_s: float,
+    poll_interval_s: float,
+    max_attempts: int,
+) -> list[dict[str, object]]:
+    reports: list[dict[str, object]] = []
+    for attempt_index in range(max_attempts):
+        if not hmi.home_cluster(cluster_address, home_parameters):
+            raise MazeException(
+                f"cluster {cluster_address} failed to start homing on attempt {attempt_index}"
+            )
+        report = _wait_for_home(hmi, cluster_address, timeout_s, poll_interval_s)
+        reports.append(report)
+        if all(report["homed"]):
+            return reports
+    raise MazeException(
+        f"cluster {cluster_address} did not fully home after {max_attempts} attempts: {reports[-1]}"
     )
 
 
@@ -106,6 +131,12 @@ def _run_cycle(
     args: argparse.Namespace,
     rng: random.Random,
 ) -> dict[str, object]:
+    initial_home_parameters = HomeParameters(
+        travel_limit=args.initial_travel_limit,
+        max_velocity=args.max_velocity,
+        run_current=args.run_current,
+        stall_threshold=args.stall_threshold,
+    )
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
         max_velocity=args.max_velocity,
@@ -138,6 +169,20 @@ def _run_cycle(
         raise MazeException(f"cycle {cycle_index}: power_off_cluster failed")
     if not hmi.power_on_cluster(cluster_address):
         raise MazeException(f"cycle {cycle_index}: power_on_cluster failed")
+    initial_home_report = _home_until_all_homed(
+        hmi,
+        cluster_address,
+        initial_home_parameters,
+        args.home_timeout,
+        args.poll_interval,
+        args.initial_home_attempts,
+    )
+    if any(outcome != HomeOutcome.STALL.name for outcome in initial_home_report[-1]["outcomes"]):
+        raise MazeException(
+            "cycle "
+            f"{cycle_index}: expected all STALL outcomes after initial home, "
+            f"got {initial_home_report[-1]['outcomes']}"
+        )
 
     for prism_address, target_mm in enumerate(pre_home_targets):
         if not hmi.write_target_prism(cluster_address, prism_address, target_mm):
@@ -153,17 +198,17 @@ def _run_cycle(
         args.position_tolerance,
     )
 
-    if not hmi.home_cluster(cluster_address, home_parameters):
-        raise MazeException(f"cycle {cycle_index}: home_cluster failed to start")
-    home_report = _wait_for_home(
+    home_report = _home_until_all_homed(
         hmi,
         cluster_address,
+        home_parameters,
         args.home_timeout,
         args.poll_interval,
+        2,
     )
-    if any(outcome != HomeOutcome.STALL.name for outcome in home_report["outcomes"]):
+    if any(outcome != HomeOutcome.STALL.name for outcome in home_report[-1]["outcomes"]):
         raise MazeException(
-            f"cycle {cycle_index}: expected all STALL outcomes, got {home_report['outcomes']}"
+            f"cycle {cycle_index}: expected all STALL outcomes, got {home_report[-1]['outcomes']}"
         )
 
     for prism_address, target_mm in enumerate(single_prism_targets):
@@ -225,6 +270,7 @@ def _run_cycle(
 
     return {
         "cycle": cycle_index,
+        "initial_home": initial_home_report,
         "pre_home_targets_mm": list(pre_home_targets),
         "pre_home_positions_mm": list(pre_home_positions),
         "home": home_report,

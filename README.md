@@ -16,9 +16,9 @@
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 4.0.0
+- Version: 4.1.0
 - Python Version: 3.11
-- Release Date: 2025-06-11
+- Release Date: 2026-04-03
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -93,6 +93,43 @@
 <a id="org4578627"></a>
 
 # Example Usage
+
+
+## Recommended Rig Settings
+
+Validated single-cluster settings for the current rewrite bench and
+experimental-rig bring-up:
+
+```python
+from hex_maze_interface import ControllerParameters, HomeParameters
+
+recommended_home_parameters = HomeParameters(
+    travel_limit=250,
+    max_velocity=20,
+    run_current=50,
+    stall_threshold=10,
+)
+
+recommended_controller_parameters = ControllerParameters(
+    start_velocity=10,
+    stop_velocity=10,
+    first_velocity=40,
+    max_velocity=40,
+    first_acceleration=120,
+    max_acceleration=80,
+    max_deceleration=80,
+    first_deceleration=120,
+)
+```
+
+Notes:
+
+- Earlier GUI settings with `start_velocity = 20` and `stop_velocity = 20`
+  were not reliable on the validated bench.
+- The historical short home setting `travel_limit = 100` was also not
+  reliable on the validated bench.
+- Keep commanded positive prism positions clear of the mechanical positive
+  hard stop on the real rig.
 
 
 ## Python
