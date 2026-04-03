@@ -7,7 +7,13 @@ import argparse
 import json
 import time
 
-from hex_maze_interface import ControllerParameters, HexMazeInterface, HomeOutcome, HomeParameters, MazeException
+from hex_maze_interface import (
+    ControllerParameters,
+    HexMazeInterface,
+    HomeOutcome,
+    HomeParameters,
+    MazeException,
+)
 
 
 def _parse_args() -> argparse.Namespace:

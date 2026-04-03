@@ -8,7 +8,13 @@ import json
 import random
 import time
 
-from hex_maze_interface import ControllerParameters, HexMazeInterface, HomeOutcome, HomeParameters, MazeException
+from hex_maze_interface import (
+    ControllerParameters,
+    HexMazeInterface,
+    HomeOutcome,
+    HomeParameters,
+    MazeException,
+)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -106,10 +112,7 @@ def _wait_for_home(
                 f"{[outcome.name for outcome in last['outcomes']]}"
             )
         time.sleep(poll_interval_s)
-    raise MazeException(
-        f"cluster {cluster_address} did not finish homing; "
-        f"last state was {last}"
-    )
+    raise MazeException(f"cluster {cluster_address} did not finish homing; last state was {last}")
 
 
 def _ensure_cluster_is_alive(hmi: HexMazeInterface, cluster_address: int) -> dict[str, object]:
@@ -122,7 +125,9 @@ def _ensure_cluster_is_alive(hmi: HexMazeInterface, cluster_address: int) -> dic
 def _assert_all_prisms_visible(positions_mm: tuple[int, ...]) -> None:
     missing = [index for index, position in enumerate(positions_mm) if position < 0]
     if missing:
-        raise MazeException(f"non-communicating prisms reported positions < 0 at addresses {missing}")
+        raise MazeException(
+            f"non-communicating prisms reported positions < 0 at addresses {missing}"
+        )
 
 
 def _assert_all_homed(report: dict[str, object]) -> None:
@@ -130,7 +135,10 @@ def _assert_all_homed(report: dict[str, object]) -> None:
     outcomes = list(report["outcomes"])
     if not all(homed):
         raise MazeException(f"expected all prisms homed, got homed={homed}")
-    if any(outcome not in (HomeOutcome.STALL.name, HomeOutcome.TARGET_REACHED.name) for outcome in outcomes):
+    if any(
+        outcome not in (HomeOutcome.STALL.name, HomeOutcome.TARGET_REACHED.name)
+        for outcome in outcomes
+    ):
         raise MazeException(f"expected terminal home outcomes, got {outcomes}")
 
 
@@ -296,7 +304,9 @@ def _pause_resume_test(
 
     for target in queue_targets:
         if not hmi.write_target_prism(cluster_address, prism_address, target):
-            raise MazeException(f"pause-resume: queued write_target_prism failed for target {target}")
+            raise MazeException(
+                f"pause-resume: queued write_target_prism failed for target {target}"
+            )
 
     if not hmi.resume_prism(cluster_address, prism_address):
         raise MazeException("pause-resume: resume_prism failed")
@@ -484,7 +494,10 @@ def _parameter_persistence_test(
         "controller_parameters": hmi.read_controller_parameters_cluster(cluster_address).to_tuple(),
     }
 
-    if after_home["run_current_percent"] != run_current or after_power_cycle["run_current_percent"] != run_current:
+    if (
+        after_home["run_current_percent"] != run_current
+        or after_power_cycle["run_current_percent"] != run_current
+    ):
         raise MazeException(
             "parameter-persistence: run current did not persist across home/power cycle"
         )
@@ -499,7 +512,9 @@ def _parameter_persistence_test(
     if not hmi.write_run_current_cluster(cluster_address, default_run_current):
         raise MazeException("parameter-persistence: failed to restore default run current")
     if not hmi.write_controller_parameters_cluster(cluster_address, default_controller_parameters):
-        raise MazeException("parameter-persistence: failed to restore default controller parameters")
+        raise MazeException(
+            "parameter-persistence: failed to restore default controller parameters"
+        )
 
     return {
         "written_run_current_percent": run_current,

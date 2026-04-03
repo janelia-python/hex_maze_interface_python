@@ -39,7 +39,9 @@ def test_verify_cluster_json(monkeypatch) -> None:
 
 
 def test_global_timeout_option_is_accepted(monkeypatch) -> None:
-    monkeypatch.setattr(HexMazeInterface, "communicating_cluster", lambda self, cluster_address: True)
+    monkeypatch.setattr(
+        HexMazeInterface, "communicating_cluster", lambda self, cluster_address: True
+    )
 
     result = CliRunner().invoke(cli, ["--timeout", "0.25", "communicating-cluster", "10"])
 

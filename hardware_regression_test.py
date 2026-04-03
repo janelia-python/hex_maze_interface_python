@@ -86,10 +86,7 @@ def _wait_for_home(
                 f"{[outcome.name for outcome in last['outcomes']]}"
             )
         time.sleep(poll_interval_s)
-    raise MazeException(
-        f"cluster {cluster_address} did not finish homing; "
-        f"last state was {last}"
-    )
+    raise MazeException(f"cluster {cluster_address} did not finish homing; last state was {last}")
 
 
 def _home_until_all_homed(
@@ -144,9 +141,7 @@ def _run_cycle(
         stall_threshold=args.stall_threshold,
     )
 
-    pre_home_targets = _random_targets(
-        rng, args.pre_home_low, args.pre_home_high, hmi.PRISM_COUNT
-    )
+    pre_home_targets = _random_targets(rng, args.pre_home_low, args.pre_home_high, hmi.PRISM_COUNT)
     single_prism_targets = _random_targets(
         rng, args.pre_home_low // 2, args.pre_home_high - 20, hmi.PRISM_COUNT
     )

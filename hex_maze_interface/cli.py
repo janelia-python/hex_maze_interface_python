@@ -13,7 +13,6 @@ from .hex_maze_interface import (
     HomeParameters,
 )
 
-
 pass_hex_maze_interface = click.make_pass_decorator(HexMazeInterface)
 
 
@@ -482,8 +481,7 @@ def write_double_targets_cluster(
     double_positions_mm: tuple[int, ...],
 ) -> None:
     pairs = tuple(
-        double_positions_mm[index : index + 2]
-        for index in range(0, len(double_positions_mm), 2)
+        double_positions_mm[index : index + 2] for index in range(0, len(double_positions_mm), 2)
     )
     _emit(hmi.write_double_targets_cluster(cluster_address, pairs), as_json=False)
 

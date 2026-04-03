@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from enum import IntEnum
 import json
 import socket
 import struct
 import time
+from dataclasses import asdict, dataclass
+from enum import IntEnum
 from typing import Any
 
 try:
@@ -182,9 +182,7 @@ class HexMazeInterface:
         if discover_backend is not None:
             return discover_backend
         if nmap3 is None:
-            raise MazeException(
-                "cluster discovery requires the optional dependency 'python3-nmap'"
-            )
+            raise MazeException("cluster discovery requires the optional dependency 'python3-nmap'")
         return nmap3.NmapHostDiscovery()
 
     @staticmethod
@@ -211,7 +209,9 @@ class HexMazeInterface:
                 "command_number": command_number,
                 "parameters": command_parameters,
             }
-            raise MazeException(f"failed to encode command: {json.dumps(payload, default=str)}") from exc
+            raise MazeException(
+                f"failed to encode command: {json.dumps(payload, default=str)}"
+            ) from exc
 
     @classmethod
     def _validate_response(cls, response_bytes: bytes, expected_command_number: int) -> bytes:
@@ -265,13 +265,19 @@ class HexMazeInterface:
         backend = self._nmap_backend(self._discover_backend)
         results = backend.nmap_portscan_only(self.IP_RANGE, args=f"-p {self.PORT}")
         filtered_results = dict(filter(results_filter, results.items()))
-        return sorted(filtered_results.keys(), key=lambda ip: tuple(int(part) for part in ip.split(".")))
+        return sorted(
+            filtered_results.keys(), key=lambda ip: tuple(int(part) for part in ip.split("."))
+        )
 
     def discover_cluster_addresses(self) -> list[int]:
-        self._cluster_addresses = [int(ip_address.split(".")[-1]) for ip_address in self._discover_ip_addresses()]
+        self._cluster_addresses = [
+            int(ip_address.split(".")[-1]) for ip_address in self._discover_ip_addresses()
+        ]
         return list(self._cluster_addresses)
 
-    def _send_ip_cmd_bytes_receive_rsp_params_bytes(self, ip_address: str, cmd_bytes: bytes) -> bytes:
+    def _send_ip_cmd_bytes_receive_rsp_params_bytes(
+        self, ip_address: str, cmd_bytes: bytes
+    ) -> bytes:
         repeat_count = 0
         last_error: BaseException | None = None
         self._debug_print("cmd_bytes:", cmd_bytes.hex())
@@ -341,7 +347,9 @@ class HexMazeInterface:
     def no_cmd(self, cluster_address: int) -> None:
         self._validate_cluster_address(cluster_address)
         cmd_bytes = self._encode_command("<BB", 2)
-        self._send_ip_cmd_bytes_receive_rsp_params_bytes(self._cluster_ip(cluster_address), cmd_bytes)
+        self._send_ip_cmd_bytes_receive_rsp_params_bytes(
+            self._cluster_ip(cluster_address), cmd_bytes
+        )
 
     def bad_cmd(self, cluster_address: int) -> None:
         self._send_cluster_cmd_receive_rsp_params(cluster_address, "<BBB", 3, self.ERROR_RESPONSE)
@@ -367,7 +375,10 @@ class HexMazeInterface:
             return False
 
     def communicating_all_clusters(self) -> list[bool]:
-        return [self.communicating_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.communicating_cluster(cluster_address)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def reset_cluster(self, cluster_address: int) -> bool:
         return self._bool_command(cluster_address, "<BBB", 3, 0x03)
@@ -382,7 +393,10 @@ class HexMazeInterface:
         return ok
 
     def beep_all_clusters(self, duration_ms: int) -> list[bool]:
-        return [self.beep_cluster(cluster_address, duration_ms) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.beep_cluster(cluster_address, duration_ms)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def led_off_cluster(self, cluster_address: int) -> bool:
         return self._bool_command(cluster_address, "<BBB", 3, 0x05)
@@ -413,7 +427,9 @@ class HexMazeInterface:
         return self._bool_command(cluster_address, "<BBB", 3, 0x07)
 
     def power_off_all_clusters(self) -> list[bool]:
-        return [self.power_off_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.power_off_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def power_on_cluster(self, cluster_address: int) -> bool:
         ok = self._bool_command(cluster_address, "<BBB", 3, 0x08)
@@ -422,7 +438,9 @@ class HexMazeInterface:
         return ok
 
     def power_on_all_clusters(self) -> list[bool]:
-        return [self.power_on_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.power_on_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def home_prism(
         self,
@@ -438,10 +456,15 @@ class HexMazeInterface:
         return self._bool_command(cluster_address, "<BBBHBBb", 8, 0x0A, home_parameters.to_tuple())
 
     def home_all_clusters(self, home_parameters: HomeParameters) -> list[bool]:
-        return [self.home_cluster(cluster_address, home_parameters) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.home_cluster(cluster_address, home_parameters)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def homed_cluster(self, cluster_address: int) -> tuple[int, ...]:
-        return self._send_cluster_cmd_receive_rsp_params(cluster_address, "<BBB", 3, 0x0B, None, "<BBBBBBB", 7)
+        return self._send_cluster_cmd_receive_rsp_params(
+            cluster_address, "<BBB", 3, 0x0B, None, "<BBBBBBB", 7
+        )
 
     def read_home_outcomes_cluster(self, cluster_address: int) -> tuple[HomeOutcome, ...]:
         outcomes = self._send_cluster_cmd_receive_rsp_params(
@@ -455,9 +478,13 @@ class HexMazeInterface:
         )
         return tuple(HomeOutcome(value) for value in outcomes)
 
-    def write_target_prism(self, cluster_address: int, prism_address: int, position_mm: int) -> bool:
+    def write_target_prism(
+        self, cluster_address: int, prism_address: int, position_mm: int
+    ) -> bool:
         self._validate_prism_address(prism_address)
-        return self._bool_command(cluster_address, "<BBBBH", 6, 0x0C, (prism_address, position_mm), "<B", 1)
+        return self._bool_command(
+            cluster_address, "<BBBBH", 6, 0x0C, (prism_address, position_mm), "<B", 1
+        )
 
     def write_targets_cluster(self, cluster_address: int, positions_mm: Any) -> bool:
         positions = self._validate_sequence("positions_mm", positions_mm, self.PRISM_COUNT)
@@ -484,16 +511,23 @@ class HexMazeInterface:
         return [self.resume_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
 
     def read_positions_cluster(self, cluster_address: int) -> tuple[int, ...]:
-        return self._send_cluster_cmd_receive_rsp_params(cluster_address, "<BBB", 3, 0x12, None, "<hhhhhhh", 14)
+        return self._send_cluster_cmd_receive_rsp_params(
+            cluster_address, "<BBB", 3, 0x12, None, "<hhhhhhh", 14
+        )
 
     def write_run_current_cluster(self, cluster_address: int, current_percent: int) -> bool:
         return self._bool_command(cluster_address, "<BBBB", 4, 0x13, current_percent)
 
     def read_run_current_cluster(self, cluster_address: int) -> int:
-        return self._send_cluster_cmd_receive_rsp_params(cluster_address, "<BBB", 3, 0x14, None, "<B", 1)
+        return self._send_cluster_cmd_receive_rsp_params(
+            cluster_address, "<BBB", 3, 0x14, None, "<B", 1
+        )
 
     def write_run_current_all_clusters(self, current_percent: int) -> list[bool]:
-        return [self.write_run_current_cluster(cluster_address, current_percent) for cluster_address in self.CLUSTER_ADDRESSES]
+        return [
+            self.write_run_current_cluster(cluster_address, current_percent)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
 
     def write_controller_parameters_cluster(
         self,
@@ -537,10 +571,14 @@ class HexMazeInterface:
     ) -> bool:
         self._validate_prism_address(prism_address)
         positions = self._validate_sequence("double_position_mm", double_position_mm, 2)
-        return self._bool_command(cluster_address, "<BBBBHH", 8, 0x17, (prism_address, *positions), "<B", 1)
+        return self._bool_command(
+            cluster_address, "<BBBBHH", 8, 0x17, (prism_address, *positions), "<B", 1
+        )
 
     def write_double_targets_cluster(self, cluster_address: int, double_positions_mm: Any) -> bool:
-        flattened = self._flatten_pairs("double_positions_mm", double_positions_mm, self.PRISM_COUNT)
+        flattened = self._flatten_pairs(
+            "double_positions_mm", double_positions_mm, self.PRISM_COUNT
+        )
         return self._bool_command(
             cluster_address,
             "<BBBHHHHHHHHHHHHHH",

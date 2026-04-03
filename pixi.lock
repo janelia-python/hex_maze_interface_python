@@ -954,7 +954,7 @@ packages:
 - pypi: ./
   name: hex-maze-interface
   version: 4.1.0
-  sha256: 5029f309b276a574aeb174434a388dfcc80f40797ef33101abef745d5eb7708c
+  sha256: 75b5ab8571df8773d058f4db8333decd64bb815222ef5308406b038b540adf15
   requires_dist:
   - click>=8.1
   - python3-nmap>=1.9

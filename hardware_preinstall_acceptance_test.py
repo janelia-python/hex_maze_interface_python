@@ -134,7 +134,9 @@ def _home_until_expected_homed(
         if tuple(report["homed"]) == expected_homed:
             return reports
     raise MazeException(
-        f"cluster {cluster_address} did not reach expected homed state after {max_attempts} attempts: {reports[-1]}"
+        "cluster "
+        f"{cluster_address} did not reach expected homed state "
+        f"after {max_attempts} attempts: {reports[-1]}"
     )
 
 
@@ -159,7 +161,9 @@ def _wait_for_cluster_alive(
 def _assert_all_prisms_visible(positions_mm: tuple[int, ...]) -> None:
     missing = [index for index, position in enumerate(positions_mm) if position < 0]
     if missing:
-        raise MazeException(f"non-communicating prisms reported positions < 0 at addresses {missing}")
+        raise MazeException(
+            f"non-communicating prisms reported positions < 0 at addresses {missing}"
+        )
 
 
 def _power_cycle_and_verify(
@@ -171,9 +175,7 @@ def _power_cycle_and_verify(
         raise MazeException("initial power_off_cluster failed")
     if not hmi.power_on_cluster(cluster_address):
         raise MazeException("initial power_on_cluster failed")
-    report = _wait_for_cluster_alive(
-        hmi, cluster_address, args.home_timeout, args.poll_interval
-    )
+    report = _wait_for_cluster_alive(hmi, cluster_address, args.home_timeout, args.poll_interval)
     _assert_all_prisms_visible(tuple(report["checks"]["positions_mm"]))
     return report
 
@@ -243,7 +245,7 @@ def _single_prism_home_isolation_test(
         if any(outcome == HomeOutcome.FAILED for outcome in outcomes):
             raise MazeException(
                 "single-prism-home-isolation: "
-                f"failed home outcome { [outcome.name for outcome in outcomes] }"
+                f"failed home outcome {[outcome.name for outcome in outcomes]}"
             )
         time.sleep(args.poll_interval)
     if home_report is None:
@@ -256,14 +258,10 @@ def _single_prism_home_isolation_test(
             f"position was {final_positions[prism_address]}"
         )
     untouched_positions = [
-        position
-        for index, position in enumerate(final_positions)
-        if index != prism_address
+        position for index, position in enumerate(final_positions) if index != prism_address
     ]
     untouched_targets = [
-        target
-        for index, target in enumerate(staged_targets)
-        if index != prism_address
+        target for index, target in enumerate(staged_targets) if index != prism_address
     ]
     if any(
         abs(position - target) > args.position_tolerance

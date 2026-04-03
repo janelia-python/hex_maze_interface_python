@@ -7,7 +7,13 @@ import argparse
 import json
 import time
 
-from hex_maze_interface import ControllerParameters, HexMazeInterface, HomeOutcome, HomeParameters, MazeException
+from hex_maze_interface import (
+    ControllerParameters,
+    HexMazeInterface,
+    HomeOutcome,
+    HomeParameters,
+    MazeException,
+)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -16,7 +22,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--use-all-clusters-api",
         action="store_true",
-        help="Use power/controller/home all-cluster API methods. Intended for a fully attached rig.",
+        help=(
+            "Use power/controller/home all-cluster API methods. "
+            "Intended for a fully attached rig."
+        ),
     )
     parser.add_argument(
         "--home-travel-limit",
@@ -102,9 +111,7 @@ def _wait_for_home(
                 f"{[outcome.name for outcome in last['outcomes']]}"
             )
         time.sleep(poll_interval_s)
-    raise MazeException(
-        f"cluster {cluster_address} did not finish homing; last state was {last}"
-    )
+    raise MazeException(f"cluster {cluster_address} did not finish homing; last state was {last}")
 
 
 def _verify_cluster_alive(hmi: HexMazeInterface, cluster_address: int) -> dict[str, object]:
@@ -124,20 +131,30 @@ def _power_cycle_clusters(hmi: HexMazeInterface, clusters: tuple[int, ...]) -> d
     return {"power_off": power_off, "power_on": power_on}
 
 
-def _power_cycle_all_clusters_api(hmi: HexMazeInterface, clusters: tuple[int, ...]) -> dict[str, object]:
+def _power_cycle_all_clusters_api(
+    hmi: HexMazeInterface, clusters: tuple[int, ...]
+) -> dict[str, object]:
     power_off = hmi.power_off_all_clusters()
     power_on = hmi.power_on_all_clusters()
     expected = set(clusters)
     indexed_power_off = {
-        cluster: power_off[index] for index, cluster in enumerate(hmi.CLUSTER_ADDRESSES) if cluster in expected
+        cluster: power_off[index]
+        for index, cluster in enumerate(hmi.CLUSTER_ADDRESSES)
+        if cluster in expected
     }
     indexed_power_on = {
-        cluster: power_on[index] for index, cluster in enumerate(hmi.CLUSTER_ADDRESSES) if cluster in expected
+        cluster: power_on[index]
+        for index, cluster in enumerate(hmi.CLUSTER_ADDRESSES)
+        if cluster in expected
     }
     if not all(indexed_power_off.values()):
-        raise MazeException(f"power_off_all_clusters failed for selected clusters: {indexed_power_off}")
+        raise MazeException(
+            f"power_off_all_clusters failed for selected clusters: {indexed_power_off}"
+        )
     if not all(indexed_power_on.values()):
-        raise MazeException(f"power_on_all_clusters failed for selected clusters: {indexed_power_on}")
+        raise MazeException(
+            f"power_on_all_clusters failed for selected clusters: {indexed_power_on}"
+        )
     return {"power_off_all_clusters": indexed_power_off, "power_on_all_clusters": indexed_power_on}
 
 
@@ -188,7 +205,9 @@ def _verify_controller_parameters(
         actual = hmi.read_controller_parameters_cluster(cluster).to_tuple()
         if actual != expected:
             raise MazeException(
-                f"cluster {cluster} controller parameters mismatch: expected {expected}, got {actual}"
+                "cluster "
+                f"{cluster} controller parameters mismatch: "
+                f"expected {expected}, got {actual}"
             )
         reports[cluster] = {"expected": list(expected), "actual": list(actual)}
     return reports
@@ -213,7 +232,9 @@ def _home_clusters(
         selected = {cluster: hmi.home_cluster(cluster, home_parameters) for cluster in clusters}
     if not all(selected.values()):
         raise MazeException(f"home start failed: {selected}")
-    reports = {cluster: _wait_for_home(hmi, cluster, timeout_s, poll_interval_s) for cluster in clusters}
+    reports = {
+        cluster: _wait_for_home(hmi, cluster, timeout_s, poll_interval_s) for cluster in clusters
+    }
     for cluster, report in reports.items():
         if not all(report["homed"]):
             raise MazeException(f"cluster {cluster} did not fully home: {report}")

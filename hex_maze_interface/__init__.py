@@ -1,15 +1,16 @@
 """Python interface to the Voigts lab hex maze."""
+
 # This file is generated automatically from metadata
 # File edits may be overwritten!
-from hex_maze_interface.__about__ import (
+from .__about__ import (
     __author__,
     __copyright__,
+    __description__,
     __email__,
     __license__,
-    __description__,
     __url__,
-    __version__)
-
+    __version__,
+)
 from .hex_maze_interface import (
     ControllerParameters,
     HexMazeInterface,
@@ -17,3 +18,18 @@ from .hex_maze_interface import (
     HomeParameters,
     MazeException,
 )
+
+__all__ = [
+    "__author__",
+    "__copyright__",
+    "__description__",
+    "__email__",
+    "__license__",
+    "__url__",
+    "__version__",
+    "ControllerParameters",
+    "HexMazeInterface",
+    "HomeOutcome",
+    "HomeParameters",
+    "MazeException",
+]
