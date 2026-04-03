@@ -23,8 +23,7 @@ def _parse_args() -> argparse.Namespace:
         "--use-all-clusters-api",
         action="store_true",
         help=(
-            "Use power/controller/home all-cluster API methods. "
-            "Intended for a fully attached rig."
+            "Use power/controller/home all-cluster API methods. Intended for a fully attached rig."
         ),
     )
     parser.add_argument(
