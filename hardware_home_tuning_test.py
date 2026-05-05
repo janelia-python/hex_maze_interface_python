@@ -22,7 +22,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--travel-limits", type=_parse_csv_ints, default=(200, 250, 300))
     parser.add_argument("--max-velocities", type=_parse_csv_ints, default=(15, 20, 25))
     parser.add_argument("--run-currents", type=_parse_csv_ints, default=(45, 50, 55))
-    parser.add_argument("--stall-thresholds", type=_parse_csv_ints, default=(8, 10, 12))
+    parser.add_argument("--stall-thresholds", type=_parse_csv_ints, default=(0, -5, -10))
     parser.add_argument("--position-timeout", type=float, default=20.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)

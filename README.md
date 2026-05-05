@@ -53,6 +53,9 @@
 -   home-parameters = travel-limit, max-velocity, run-current, stall-threshold
 -   controller-parameters = start-velocity, stop-velocity, first-velocity, max-velocity, first-acceleration, max-acceleration, max-deceleration, first-deceleration
 -   double-position = position-0, position-1
+-   prism-diagnostics = health-flags, driver-flags, stall-guard-result, current-scale, last-home-travel-mm
+-   diagnostic health flags: bit0 communicating, bit1 communication-failure-latched, bit2 reset-latched, bit3 driver-error-latched, bit4 charge-pump-undervoltage-latched, bit5 recovery-attempted-latched, bit6 recovery-failed-latched, bit7 mirror-resync-required
+-   diagnostic driver flags: bit0 stallguard, bit1 over-temperature-warning, bit2 over-temperature-shutdown, bit3 short-to-ground-a, bit4 short-to-ground-b, bit5 open-load-a, bit6 open-load-b, bit7 standstill
 
 | command-name                        | command-format       | command-length | command-number | command-parameters             | response-format | response-length | response-parameters    |
 |----------------------------------- |-------------------- |-------------- |-------------- |------------------------------ |--------------- |--------------- |---------------------- |
@@ -81,6 +84,9 @@
 | read-controller-parameters-cluster  | '<BBB'               | 3              | 0x16           |                                | '<BBBBBBBBBBB'  | 11              | controller-parameters  |
 | write-double-target-prism           | '<BBBBHH'            | 8              | 0x17           | prism-address, double-position | '<BBBB'         | 4               | prism-address          |
 | write-double-targets-cluster        | '<BBBHHHHHHHHHHHHHH' | 31             | 0x18           | double-position[prism-count]   | '<BBB'          | 3               |                        |
+| read-home-outcomes-cluster          | '<BBB'               | 3              | 0x19           |                                | '<BBBBBBBBBB'   | 10              | home-outcome[prism-count] |
+| read-prism-diagnostics-cluster      | '<BBB'               | 3              | 0x1A           |                                | '<BBB...'       | 45              | prism-diagnostics[prism-count] |
+| clear-prism-diagnostics-cluster     | '<BBB'               | 3              | 0x1B           |                                | '<BBB'          | 3               |                        |
 
 
 <a id="org8de352a"></a>
@@ -107,7 +113,7 @@ recommended_home_parameters = HomeParameters(
     travel_limit=250,
     max_velocity=20,
     run_current=50,
-    stall_threshold=10,
+    stall_threshold=0,
 )
 
 recommended_controller_parameters = ControllerParameters(
@@ -126,8 +132,11 @@ Notes:
 
 - Earlier GUI settings with `start_velocity = 20` and `stop_velocity = 20`
   were not reliable on the validated bench.
-- The historical short home setting `travel_limit = 100` was also not
-  reliable on the validated bench.
+- The historical `stall_threshold = 10` setting was too insensitive for at
+  least one prism on the desk rig. `stall_threshold = 5` was also too
+  insensitive for another prism after a firmware flash. `stall_threshold = 0`
+  is the current provisional setting while `last_home_travel_mm` diagnostics
+  are used to distinguish true hardstop homes from possible early stalls.
 - Keep commanded positive prism positions clear of the mechanical positive
   hard stop on the real rig.
 
@@ -148,7 +157,7 @@ home_parameters = HomeParameters()
 home_parameters.travel_limit = 100
 home_parameters.max_velocity = 20
 home_parameters.run_current = 50
-home_parameters.stall_threshold = 10
+home_parameters.stall_threshold = 0
 # a single prism may be homed
 hmi.home_prism(cluster_address, prism_address, home_parameters)
 # or all prisms in a cluster may be homed at the same time
@@ -182,6 +191,8 @@ print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
 hmi.write_double_target_prism(cluster_address, prism_address, (50, 150))
 hmi.write_double_targets_cluster(cluster_address, ((10,20),(30,40),(50,60),(70,80),(90,100),(110,120),(130,140)))
+diagnostics = hmi.read_prism_diagnostics_cluster(cluster_address)
+hmi.clear_prism_diagnostics_cluster(cluster_address)
 hmi.power_off_cluster(cluster_address)
 ```
 
@@ -251,7 +262,7 @@ PRISM_ADDRESS=2
 TRAVEL_LIMIT=100
 MAX_VELOCITY=20
 RUN_CURRENT=50
-STALL_THRESHOLD=10
+STALL_THRESHOLD=0
 # a single prism may be homed
 maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 # or all prisms in a cluster may be homed at the same time

@@ -38,7 +38,7 @@ class HomeParameters:
     travel_limit: int = 500
     max_velocity: int = 20
     run_current: int = 50
-    stall_threshold: int = 10
+    stall_threshold: int = 0
 
     def to_tuple(self) -> tuple[int, int, int, int]:
         return (
@@ -77,6 +77,75 @@ class ControllerParameters:
 
     def __str__(self) -> str:
         return "\n".join(f"{key} = {value}" for key, value in asdict(self).items()) + "\n"
+
+
+@dataclass(slots=True)
+class PrismDiagnostics:
+    communicating: bool
+    communication_failure_latched: bool
+    reset_latched: bool
+    driver_error_latched: bool
+    charge_pump_undervoltage_latched: bool
+    recovery_attempted_latched: bool
+    recovery_failed_latched: bool
+    mirror_resync_required: bool
+    stallguard: bool
+    over_temperature_warning: bool
+    over_temperature_shutdown: bool
+    short_to_ground_a: bool
+    short_to_ground_b: bool
+    open_load_a: bool
+    open_load_b: bool
+    standstill: bool
+    stall_guard_result: int
+    current_scale: int
+    last_home_travel_mm: int
+
+    @classmethod
+    def from_wire(
+        cls,
+        health_flags: int,
+        driver_flags: int,
+        stall_guard_result: int,
+        current_scale: int,
+        last_home_travel_mm: int,
+    ) -> PrismDiagnostics:
+        return cls(
+            communicating=bool(health_flags & (1 << 0)),
+            communication_failure_latched=bool(health_flags & (1 << 1)),
+            reset_latched=bool(health_flags & (1 << 2)),
+            driver_error_latched=bool(health_flags & (1 << 3)),
+            charge_pump_undervoltage_latched=bool(health_flags & (1 << 4)),
+            recovery_attempted_latched=bool(health_flags & (1 << 5)),
+            recovery_failed_latched=bool(health_flags & (1 << 6)),
+            mirror_resync_required=bool(health_flags & (1 << 7)),
+            stallguard=bool(driver_flags & (1 << 0)),
+            over_temperature_warning=bool(driver_flags & (1 << 1)),
+            over_temperature_shutdown=bool(driver_flags & (1 << 2)),
+            short_to_ground_a=bool(driver_flags & (1 << 3)),
+            short_to_ground_b=bool(driver_flags & (1 << 4)),
+            open_load_a=bool(driver_flags & (1 << 5)),
+            open_load_b=bool(driver_flags & (1 << 6)),
+            standstill=bool(driver_flags & (1 << 7)),
+            stall_guard_result=stall_guard_result,
+            current_scale=current_scale,
+            last_home_travel_mm=last_home_travel_mm,
+        )
+
+    def has_fault(self) -> bool:
+        return (
+            self.communication_failure_latched
+            or self.reset_latched
+            or self.driver_error_latched
+            or self.charge_pump_undervoltage_latched
+            or self.recovery_failed_latched
+            or self.over_temperature_warning
+            or self.over_temperature_shutdown
+            or self.short_to_ground_a
+            or self.short_to_ground_b
+            or self.open_load_a
+            or self.open_load_b
+        )
 
 
 def results_filter(pair: tuple[str, Any]) -> bool:
@@ -478,6 +547,36 @@ class HexMazeInterface:
         )
         return tuple(HomeOutcome(value) for value in outcomes)
 
+    def read_prism_diagnostics_cluster(self, cluster_address: int) -> tuple[PrismDiagnostics, ...]:
+        values = self._send_cluster_cmd_receive_rsp_params(
+            cluster_address,
+            "<BBB",
+            3,
+            0x1A,
+            None,
+            "<" + "BBHBB" * self.PRISM_COUNT,
+            6 * self.PRISM_COUNT,
+        )
+        return tuple(
+            PrismDiagnostics.from_wire(*values[index : index + 5])
+            for index in range(0, len(values), 5)
+        )
+
+    def clear_prism_diagnostics_cluster(self, cluster_address: int) -> bool:
+        return self._bool_command(cluster_address, "<BBB", 3, 0x1B)
+
+    def read_prism_diagnostics_all_clusters(self) -> list[tuple[PrismDiagnostics, ...]]:
+        return [
+            self.read_prism_diagnostics_cluster(cluster_address)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
+
+    def clear_prism_diagnostics_all_clusters(self) -> list[bool]:
+        return [
+            self.clear_prism_diagnostics_cluster(cluster_address)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
+
     def write_target_prism(
         self, cluster_address: int, prism_address: int, position_mm: int
     ) -> bool:
@@ -608,6 +707,13 @@ class HexMazeInterface:
             report["checks"]["controller_parameters"] = asdict(
                 self.read_controller_parameters_cluster(cluster_address)
             )
+            try:
+                report["checks"]["prism_diagnostics"] = [
+                    asdict(diagnostics)
+                    for diagnostics in self.read_prism_diagnostics_cluster(cluster_address)
+                ]
+            except MazeException as exc:
+                report["checks"]["prism_diagnostics_error"] = str(exc)
             report["ok"] = True
             return report
         except MazeException as exc:

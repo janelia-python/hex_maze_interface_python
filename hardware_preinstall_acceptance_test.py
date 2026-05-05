@@ -189,7 +189,7 @@ def _initial_home(
         travel_limit=args.initial_travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
     return _home_until_expected_homed(
         hmi,
@@ -213,7 +213,7 @@ def _single_prism_home_isolation_test(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
 
     if not hmi.write_targets_cluster(cluster_address, staged_targets):
@@ -289,7 +289,7 @@ def _cluster_pause_resume_test(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
     initial_targets = tuple(40 + 10 * index for index in range(hmi.PRISM_COUNT))
     queued_single_target = 185

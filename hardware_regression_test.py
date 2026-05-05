@@ -20,7 +20,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--initial-home-attempts", type=int, default=3)
     parser.add_argument("--max-velocity", type=int, default=20)
     parser.add_argument("--run-current", type=int, default=50)
-    parser.add_argument("--stall-threshold", type=int, default=10)
+    parser.add_argument("--stall-threshold", type=int, default=0)
     parser.add_argument("--pre-home-low", type=int, default=80)
     parser.add_argument("--pre-home-high", type=int, default=160)
     parser.add_argument("--position-timeout", type=float, default=20.0)

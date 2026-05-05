@@ -17,6 +17,7 @@ from .hex_maze_interface import (
     HomeOutcome,
     HomeParameters,
     MazeException,
+    PrismDiagnostics,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "HomeOutcome",
     "HomeParameters",
     "MazeException",
+    "PrismDiagnostics",
 ]

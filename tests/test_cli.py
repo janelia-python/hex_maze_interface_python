@@ -5,7 +5,7 @@ import json
 from click.testing import CliRunner
 
 from hex_maze_interface.cli import cli
-from hex_maze_interface.hex_maze_interface import HexMazeInterface
+from hex_maze_interface.hex_maze_interface import HexMazeInterface, PrismDiagnostics
 
 
 def test_discover_clusters_json(monkeypatch) -> None:
@@ -47,3 +47,23 @@ def test_global_timeout_option_is_accepted(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert result.output.strip() == "True"
+
+
+def test_read_prism_diagnostics_cluster_json(monkeypatch) -> None:
+    monkeypatch.setattr(
+        HexMazeInterface,
+        "read_prism_diagnostics_cluster",
+        lambda self, cluster_address: (
+            (PrismDiagnostics.from_wire(0x05, 0x02, 123, 9, 12),) * HexMazeInterface.PRISM_COUNT
+        ),
+    )
+
+    result = CliRunner().invoke(cli, ["read-prism-diagnostics-cluster", "10", "--json"])
+
+    assert result.exit_code == 0
+    output = json.loads(result.output)
+    assert output[0]["communicating"] is True
+    assert output[0]["reset_latched"] is True
+    assert output[0]["over_temperature_warning"] is True
+    assert output[0]["stall_guard_result"] == 123
+    assert output[0]["last_home_travel_mm"] == 12

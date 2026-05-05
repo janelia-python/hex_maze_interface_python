@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from typing import Any
 
 import click
@@ -265,6 +266,48 @@ def read_home_outcomes_cluster(
 ) -> None:
     outcomes = [outcome.name.lower() for outcome in hmi.read_home_outcomes_cluster(cluster_address)]
     _emit(outcomes, as_json=as_json)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+@pass_hex_maze_interface
+def read_prism_diagnostics_cluster(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    as_json: bool,
+) -> None:
+    diagnostics = [
+        asdict(diagnostics) for diagnostics in hmi.read_prism_diagnostics_cluster(cluster_address)
+    ]
+    _emit(diagnostics, as_json=as_json)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
+@pass_hex_maze_interface
+def clear_prism_diagnostics_cluster(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+) -> None:
+    _emit(hmi.clear_prism_diagnostics_cluster(cluster_address), as_json=False)
+
+
+@cli.command()
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
+@pass_hex_maze_interface
+def read_prism_diagnostics_all_clusters(hmi: HexMazeInterface, as_json: bool) -> None:
+    diagnostics_by_cluster = [
+        [asdict(diagnostics) for diagnostics in cluster_diagnostics]
+        for cluster_diagnostics in hmi.read_prism_diagnostics_all_clusters()
+    ]
+    _emit(diagnostics_by_cluster, as_json=as_json)
+
+
+@cli.command()
+@pass_hex_maze_interface
+def clear_prism_diagnostics_all_clusters(hmi: HexMazeInterface) -> None:
+    _emit(hmi.clear_prism_diagnostics_all_clusters(), as_json=False)
 
 
 @cli.command()

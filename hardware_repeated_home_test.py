@@ -24,7 +24,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--home-travel-limit", type=int, default=250)
     parser.add_argument("--home-max-velocity", type=int, default=20)
     parser.add_argument("--home-run-current", type=int, default=50)
-    parser.add_argument("--home-stall-threshold", type=int, default=10)
+    parser.add_argument("--home-stall-threshold", type=int, default=0)
     parser.add_argument("--start-velocity", type=int, default=10)
     parser.add_argument("--stop-velocity", type=int, default=10)
     parser.add_argument("--first-velocity", type=int, default=40)

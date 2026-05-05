@@ -19,7 +19,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--initial-home-attempts", type=int, default=3)
     parser.add_argument("--max-velocity", type=int, default=20)
     parser.add_argument("--run-current", type=int, default=50)
-    parser.add_argument("--stall-threshold", type=int, default=10)
+    parser.add_argument("--stall-threshold", type=int, default=0)
     parser.add_argument("--move", type=int, default=40, help="Positive post-home target in mm.")
     parser.add_argument(
         "--pre-home-low",

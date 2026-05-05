@@ -185,7 +185,7 @@ def _initial_home(
         travel_limit=args.initial_travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
     return _home_until_all_homed(
         hmi,
@@ -208,7 +208,7 @@ def _repeat_home_test(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
 
     for cycle_index in range(args.home_repeat_count):
@@ -248,7 +248,7 @@ def _command_during_home_test(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
 
     if not hmi.home_cluster(cluster_address, home_parameters):
@@ -416,7 +416,7 @@ def _final_cleanup_home(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
     report = _home_until_all_homed(
         hmi,
@@ -443,7 +443,7 @@ def _parameter_persistence_test(
         travel_limit=args.travel_limit,
         max_velocity=20,
         run_current=50,
-        stall_threshold=10,
+        stall_threshold=0,
     )
 
     if not hmi.write_run_current_cluster(cluster_address, run_current):

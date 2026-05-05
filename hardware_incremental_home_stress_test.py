@@ -21,6 +21,25 @@ from hex_maze_interface import (
     MazeException,
 )
 
+DEFAULT_RANDOM_HIGH_MM = 120
+DEFAULT_INITIAL_HOME_TRAVEL_LIMIT_MM = 100
+DEFAULT_INITIAL_HOME_ATTEMPTS = 7
+EXTENDED_RANDOM_RANGE_THRESHOLD_MM = 150
+SAFE_START_VELOCITY = 10
+SAFE_STOP_VELOCITY = 10
+SAFE_FIRST_VELOCITY = 40
+SAFE_MAX_VELOCITY = 40
+SAFE_FIRST_ACCELERATION = 120
+SAFE_MAX_ACCELERATION = 80
+SAFE_MAX_DECELERATION = 80
+SAFE_FIRST_DECELERATION = 120
+SAFE_HOME_MAX_VELOCITY = 20
+SAFE_HOME_STALL_THRESHOLD = 0
+UINT8_MIN = 0
+UINT8_MAX = 255
+INT8_MIN = -128
+INT8_MAX = 127
+
 
 def _default_log_file() -> Path:
     repo_root = Path(__file__).resolve().parents[2]
@@ -33,25 +52,88 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--cluster", type=int, required=True)
     parser.add_argument("--trial-count", type=int, default=10)
     parser.add_argument("--random-move-count", type=int, default=3)
+    parser.add_argument(
+        "--random-move-mode",
+        choices=("single", "double", "mixed"),
+        default="single",
+        help=(
+            "Use normal cluster targets, queued double-target moves, or a deterministic "
+            "mix during the pre-home random movement phase."
+        ),
+    )
     parser.add_argument("--random-low", type=int, default=0)
-    parser.add_argument("--random-high", type=int, default=400)
+    parser.add_argument("--random-high", type=int, default=DEFAULT_RANDOM_HIGH_MM)
+    parser.add_argument(
+        "--allow-extended-random-range",
+        action="store_true",
+        help=(
+            "Allow random pre-home targets above "
+            f"{EXTENDED_RANDOM_RANGE_THRESHOLD_MM} mm. Use only after confirming rig clearance."
+        ),
+    )
     parser.add_argument("--incremental-home-travel-limit", type=int, default=100)
     parser.add_argument("--max-home-passes", type=int, default=6)
-    parser.add_argument("--initial-home-travel-limit", type=int, default=500)
-    parser.add_argument("--initial-home-attempts", type=int, default=3)
-    parser.add_argument("--home-max-velocity", type=int, default=20)
+    parser.add_argument(
+        "--initial-home-travel-limit",
+        type=int,
+        default=DEFAULT_INITIAL_HOME_TRAVEL_LIMIT_MM,
+    )
+    parser.add_argument("--initial-home-attempts", type=int, default=DEFAULT_INITIAL_HOME_ATTEMPTS)
+    parser.add_argument("--home-max-velocity", type=int, default=SAFE_HOME_MAX_VELOCITY)
     parser.add_argument("--home-run-current", type=int, default=50)
-    parser.add_argument("--home-stall-threshold", type=int, default=10)
+    parser.add_argument("--home-stall-threshold", type=int, default=SAFE_HOME_STALL_THRESHOLD)
     parser.add_argument("--post-home-target", type=int, default=40)
     parser.add_argument("--post-home-step", type=int, default=0)
-    parser.add_argument("--start-velocity", type=int, default=10)
-    parser.add_argument("--stop-velocity", type=int, default=10)
-    parser.add_argument("--first-velocity", type=int, default=40)
-    parser.add_argument("--max-velocity", type=int, default=40)
-    parser.add_argument("--first-acceleration", type=int, default=120)
-    parser.add_argument("--max-acceleration", type=int, default=80)
-    parser.add_argument("--max-deceleration", type=int, default=80)
-    parser.add_argument("--first-deceleration", type=int, default=120)
+    parser.add_argument(
+        "--post-home-move-mode",
+        choices=("single", "double"),
+        default="single",
+        help="Use normal cluster targets or queued double-targets for the first post-home move.",
+    )
+    parser.add_argument("--start-velocity", type=int, default=SAFE_START_VELOCITY)
+    parser.add_argument("--stop-velocity", type=int, default=SAFE_STOP_VELOCITY)
+    parser.add_argument("--first-velocity", type=int, default=SAFE_FIRST_VELOCITY)
+    parser.add_argument("--max-velocity", type=int, default=SAFE_MAX_VELOCITY)
+    parser.add_argument("--first-acceleration", type=int, default=SAFE_FIRST_ACCELERATION)
+    parser.add_argument("--max-acceleration", type=int, default=SAFE_MAX_ACCELERATION)
+    parser.add_argument("--max-deceleration", type=int, default=SAFE_MAX_DECELERATION)
+    parser.add_argument("--first-deceleration", type=int, default=SAFE_FIRST_DECELERATION)
+    parser.add_argument(
+        "--allow-aggressive-motion-settings",
+        action="store_true",
+        help=(
+            "Allow velocity or acceleration values above the current desk-rig safe profile. "
+            "Use only for supervised tuning; audible slipping invalidates a passing run."
+        ),
+    )
+    parser.add_argument(
+        "--recover-on-move-timeout",
+        action="store_true",
+        help=(
+            "On a movement timeout, lower start/stop velocity, reissue the final target, "
+            "and log whether recovery succeeds without reset or re-home."
+        ),
+    )
+    parser.add_argument("--recovery-start-velocity", type=int, default=SAFE_START_VELOCITY)
+    parser.add_argument("--recovery-stop-velocity", type=int, default=SAFE_STOP_VELOCITY)
+    parser.add_argument("--recovery-first-velocity", type=int, default=SAFE_FIRST_VELOCITY)
+    parser.add_argument("--recovery-max-velocity", type=int, default=SAFE_MAX_VELOCITY)
+    parser.add_argument(
+        "--recovery-first-acceleration",
+        type=int,
+        default=SAFE_FIRST_ACCELERATION,
+    )
+    parser.add_argument(
+        "--recovery-max-acceleration",
+        type=int,
+        default=SAFE_MAX_ACCELERATION,
+    )
+    parser.add_argument("--recovery-max-deceleration", type=int, default=SAFE_MAX_DECELERATION)
+    parser.add_argument(
+        "--recovery-first-deceleration",
+        type=int,
+        default=SAFE_FIRST_DECELERATION,
+    )
     parser.add_argument("--position-timeout", type=float, default=35.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)
@@ -113,6 +195,33 @@ def _controller_parameters(args: argparse.Namespace) -> ControllerParameters:
     )
 
 
+def _recovery_controller_parameters(args: argparse.Namespace) -> ControllerParameters:
+    return ControllerParameters(
+        start_velocity=args.recovery_start_velocity,
+        stop_velocity=args.recovery_stop_velocity,
+        first_velocity=args.recovery_first_velocity,
+        max_velocity=args.recovery_max_velocity,
+        first_acceleration=args.recovery_first_acceleration,
+        max_acceleration=args.recovery_max_acceleration,
+        max_deceleration=args.recovery_max_deceleration,
+        first_deceleration=args.recovery_first_deceleration,
+    )
+
+
+def _verify_controller_parameters(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    expected: ControllerParameters,
+) -> ControllerParameters:
+    actual = hmi.read_controller_parameters_cluster(cluster_address)
+    if actual.to_tuple() != expected.to_tuple():
+        raise MazeException(
+            "controller parameter readback mismatch: "
+            f"expected={asdict(expected)}, actual={asdict(actual)}"
+        )
+    return actual
+
+
 def _home_parameters(args: argparse.Namespace, travel_limit: int) -> HomeParameters:
     return HomeParameters(
         travel_limit=travel_limit,
@@ -152,7 +261,25 @@ def _state_snapshot(hmi: HexMazeInterface, cluster_address: int) -> dict[str, ob
         )
     except MazeException as exc:
         snapshot["controller_parameters_error"] = str(exc)
+    diagnostics = _diagnostics_snapshot(hmi, cluster_address)
+    if isinstance(diagnostics, dict):
+        snapshot["prism_diagnostics_error"] = diagnostics["error"]
+    else:
+        snapshot["prism_diagnostics"] = diagnostics
     return snapshot
+
+
+def _diagnostics_snapshot(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+) -> list[dict[str, object]] | dict[str, str]:
+    try:
+        return [
+            asdict(diagnostics)
+            for diagnostics in hmi.read_prism_diagnostics_cluster(cluster_address)
+        ]
+    except MazeException as exc:
+        return {"error": str(exc)}
 
 
 def _wait_for_home(
@@ -197,9 +324,15 @@ def _wait_for_home(
             }
         time.sleep(poll_interval_s)
 
+    try:
+        hmi.pause_cluster(cluster_address)
+    except MazeException as exc:
+        pause_status = f"; pause_cluster also failed: {exc}"
+    else:
+        pause_status = "; pause_cluster was sent"
     raise MazeException(
         f"cluster {cluster_address} did not finish homing within {timeout_s:.1f}s; "
-        f"last state was {last}"
+        f"last state was {last}{pause_status}"
     )
 
 
@@ -209,22 +342,116 @@ def _home_until_all_homed(
     home_parameters: HomeParameters,
     timeout_s: float,
     poll_interval_s: float,
+    position_tolerance_mm: int,
     max_attempts: int,
+    *,
+    retry_unhomed_only: bool,
 ) -> list[dict[str, object]]:
     reports: list[dict[str, object]] = []
+    unhomed_prisms = tuple(range(HexMazeInterface.PRISM_COUNT))
     for attempt_index in range(max_attempts):
-        if not hmi.home_cluster(cluster_address, home_parameters):
-            raise MazeException(
-                f"cluster {cluster_address} failed to start homing on attempt {attempt_index}"
-            )
+        if attempt_index == 0 or not retry_unhomed_only:
+            home_scope = "cluster"
+            homed_prisms: tuple[int, ...] = tuple(range(HexMazeInterface.PRISM_COUNT))
+            if not hmi.home_cluster(cluster_address, home_parameters):
+                raise MazeException(
+                    f"cluster {cluster_address} failed to start homing on attempt {attempt_index}"
+                )
+        else:
+            home_scope = "prisms"
+            homed_prisms = unhomed_prisms
+            for prism_address in unhomed_prisms:
+                if not hmi.home_prism(cluster_address, prism_address, home_parameters):
+                    raise MazeException(
+                        "cluster "
+                        f"{cluster_address} failed to start homing prism {prism_address} "
+                        f"on attempt {attempt_index}"
+                    )
+        before_positions = tuple(hmi.read_positions_cluster(cluster_address))
         report = _wait_for_home(hmi, cluster_address, timeout_s, poll_interval_s)
         report["attempt"] = attempt_index
+        report["home_scope"] = home_scope
+        report["homed_prisms"] = list(homed_prisms)
+        report["before_positions_mm"] = list(before_positions)
         reports.append(report)
         if all(report["homed"]):
             return reports
+        _raise_on_target_reached_within_home_range(
+            report,
+            before_positions,
+            home_parameters.travel_limit,
+            position_tolerance_mm,
+            "initial home",
+        )
+        unhomed_prisms = tuple(
+            prism_index for prism_index, homed in enumerate(report["homed"]) if not homed
+        )
+        if not unhomed_prisms:
+            return reports
     raise MazeException(
-        f"cluster {cluster_address} did not fully home after {max_attempts} attempts: "
-        f"{reports[-1]}"
+        f"cluster {cluster_address} did not fully home after {max_attempts} attempts: {reports[-1]}"
+    )
+
+
+def _home_start(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    home_parameters: HomeParameters,
+    home_prisms: tuple[int, ...],
+) -> None:
+    if len(home_prisms) == HexMazeInterface.PRISM_COUNT:
+        if not hmi.home_cluster(cluster_address, home_parameters):
+            raise MazeException(f"cluster {cluster_address}: home_cluster failed")
+        return
+
+    for prism_address in home_prisms:
+        if not hmi.home_prism(cluster_address, prism_address, home_parameters):
+            raise MazeException(f"cluster {cluster_address}: home_prism {prism_address} failed")
+
+
+def _unhomed_prisms(report: dict[str, object]) -> tuple[int, ...]:
+    homed_values = tuple(bool(value) for value in report["homed"])
+    return tuple(prism_index for prism_index, homed in enumerate(homed_values) if not homed)
+
+
+def _target_reached_within_home_range_prisms(
+    report: dict[str, object],
+    before_positions_mm: tuple[int, ...],
+    travel_limit_mm: int,
+    position_tolerance_mm: int,
+) -> tuple[int, ...]:
+    homed_values = tuple(bool(value) for value in report["homed"])
+    outcomes = tuple(str(value).upper() for value in report["outcomes"])
+    return tuple(
+        prism_index
+        for prism_index, (homed, outcome) in enumerate(zip(homed_values, outcomes, strict=True))
+        if not homed
+        and outcome == HomeOutcome.TARGET_REACHED.name
+        and before_positions_mm[prism_index] <= travel_limit_mm + position_tolerance_mm
+    )
+
+
+def _raise_on_target_reached_within_home_range(
+    report: dict[str, object],
+    before_positions_mm: tuple[int, ...],
+    travel_limit_mm: int,
+    position_tolerance_mm: int,
+    context: str,
+) -> None:
+    affected_prisms = _target_reached_within_home_range_prisms(
+        report,
+        before_positions_mm,
+        travel_limit_mm,
+        position_tolerance_mm,
+    )
+    if not affected_prisms:
+        return
+    raise MazeException(
+        f"{context}: prisms {list(affected_prisms)} started within the "
+        f"{travel_limit_mm} mm home travel range but reached the travel limit "
+        "without StallGuard homing; aborting instead of retrying the same "
+        f"grinding home pass; before_positions_mm={list(before_positions_mm)}; "
+        f"report={report}"
     )
 
 
@@ -295,9 +522,90 @@ def _post_home_targets(args: argparse.Namespace) -> tuple[int, ...]:
 
 def _random_targets(args: argparse.Namespace, rng: random.Random) -> tuple[int, ...]:
     return tuple(
-        rng.randint(args.random_low, args.random_high)
-        for _ in range(HexMazeInterface.PRISM_COUNT)
+        rng.randint(args.random_low, args.random_high) for _ in range(HexMazeInterface.PRISM_COUNT)
     )
+
+
+def _double_target_pairs(
+    before_mm: tuple[int, ...],
+    targets_mm: tuple[int, ...],
+) -> tuple[tuple[int, int], ...]:
+    return tuple(
+        (before + ((target - before) // 2), target)
+        for before, target in zip(before_mm, targets_mm, strict=True)
+    )
+
+
+def _resolve_random_move_mode(args: argparse.Namespace, rng: random.Random) -> str:
+    if args.random_move_mode == "mixed":
+        return rng.choice(("single", "double"))
+    return args.random_move_mode
+
+
+def _write_cluster_targets(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    before_positions: tuple[int, ...],
+    targets_mm: tuple[int, ...],
+    move_mode: str,
+) -> dict[str, object]:
+    if move_mode == "single":
+        if not hmi.write_targets_cluster(cluster_address, targets_mm):
+            raise MazeException("write_targets_cluster failed")
+        return {"move_mode": move_mode}
+
+    double_targets_mm = _double_target_pairs(before_positions, targets_mm)
+    if not hmi.write_double_targets_cluster(cluster_address, double_targets_mm):
+        raise MazeException("write_double_targets_cluster failed")
+    return {
+        "move_mode": move_mode,
+        "double_targets_mm": [list(pair) for pair in double_targets_mm],
+    }
+
+
+def _recover_move_timeout(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    args: argparse.Namespace,
+    before_positions: tuple[int, ...],
+    targets_mm: tuple[int, ...],
+) -> dict[str, object]:
+    positions_before_recovery = tuple(hmi.read_positions_cluster(cluster_address))
+    diagnostics_before_recovery = _diagnostics_snapshot(hmi, cluster_address)
+    recovery_parameters = _recovery_controller_parameters(args)
+    if not hmi.write_controller_parameters_cluster(cluster_address, recovery_parameters):
+        raise MazeException("recovery write_controller_parameters_cluster failed")
+    actual_recovery_parameters = _verify_controller_parameters(
+        hmi,
+        cluster_address,
+        recovery_parameters,
+    )
+    if not hmi.write_targets_cluster(cluster_address, targets_mm):
+        raise MazeException("recovery write_targets_cluster failed")
+    recovered_positions, recovery_trace = _wait_for_positions(
+        hmi,
+        cluster_address,
+        targets_mm,
+        args.position_timeout,
+        args.poll_interval,
+        args.position_tolerance,
+        collect_trace=True,
+    )
+    return {
+        "recovered": True,
+        "recovery_controller_parameters": asdict(recovery_parameters),
+        "actual_recovery_controller_parameters": asdict(actual_recovery_parameters),
+        "positions_before_recovery_mm": list(positions_before_recovery),
+        "diagnostics_before_recovery": diagnostics_before_recovery,
+        "diagnostics_after_recovery": _diagnostics_snapshot(hmi, cluster_address),
+        "stationary_before_recovery": _stationary_prisms(
+            before_positions,
+            positions_before_recovery,
+            args.position_tolerance,
+        ),
+        "recovered_positions_mm": list(recovered_positions),
+        "recovery_trace": recovery_trace,
+    }
 
 
 def _run_random_move(
@@ -305,22 +613,52 @@ def _run_random_move(
     cluster_address: int,
     args: argparse.Namespace,
     targets_mm: tuple[int, ...],
+    rng: random.Random,
     move_index: int,
 ) -> dict[str, object]:
     before_positions = tuple(hmi.read_positions_cluster(cluster_address))
-    if not hmi.write_targets_cluster(cluster_address, targets_mm):
-        raise MazeException(f"random move {move_index}: write_targets_cluster failed")
-    final_positions, trace = _wait_for_positions(
-        hmi,
-        cluster_address,
-        targets_mm,
-        args.position_timeout,
-        args.poll_interval,
-        args.position_tolerance,
-        collect_trace=args.success_trace,
-    )
+    move_mode = _resolve_random_move_mode(args, rng)
+    try:
+        write_report = _write_cluster_targets(
+            hmi,
+            cluster_address,
+            before_positions,
+            targets_mm,
+            move_mode,
+        )
+    except MazeException as exc:
+        raise MazeException(f"random move {move_index}: {exc}") from exc
+    try:
+        final_positions, trace = _wait_for_positions(
+            hmi,
+            cluster_address,
+            targets_mm,
+            args.position_timeout,
+            args.poll_interval,
+            args.position_tolerance,
+            collect_trace=args.success_trace,
+        )
+        recovery_report: dict[str, object] = {"recovered": False}
+    except MazeException as exc:
+        if not args.recover_on_move_timeout:
+            raise
+        try:
+            recovery_report = _recover_move_timeout(
+                hmi,
+                cluster_address,
+                args,
+                before_positions,
+                targets_mm,
+            )
+            final_positions = tuple(recovery_report["recovered_positions_mm"])
+            trace = []
+        except MazeException as recovery_exc:
+            raise MazeException(f"{exc}; recovery failed: {recovery_exc}") from recovery_exc
+
     return {
         "move": move_index,
+        **write_report,
+        **recovery_report,
         "before_positions_mm": list(before_positions),
         "targets_mm": list(targets_mm),
         "final_positions_mm": list(final_positions),
@@ -335,11 +673,11 @@ def _run_incremental_home(
 ) -> list[dict[str, object]]:
     home_parameters = _home_parameters(args, args.incremental_home_travel_limit)
     home_passes: list[dict[str, object]] = []
+    home_prisms = tuple(range(HexMazeInterface.PRISM_COUNT))
 
     for pass_index in range(args.max_home_passes):
         before = _state_snapshot(hmi, cluster_address)
-        if not hmi.home_cluster(cluster_address, home_parameters):
-            raise MazeException(f"incremental home pass {pass_index}: home_cluster failed")
+        _home_start(hmi, cluster_address, home_parameters, home_prisms)
         report = _wait_for_home(
             hmi,
             cluster_address,
@@ -348,6 +686,10 @@ def _run_incremental_home(
         )
         home_pass = {
             "pass": pass_index,
+            "home_scope": (
+                "cluster" if len(home_prisms) == HexMazeInterface.PRISM_COUNT else "prisms"
+            ),
+            "homed_prisms": list(home_prisms),
             "home_parameters": asdict(home_parameters),
             "before": before,
             "after": report,
@@ -355,6 +697,15 @@ def _run_incremental_home(
         home_passes.append(home_pass)
         if all(report["homed"]):
             return home_passes
+        before_positions = tuple(int(position) for position in before["positions_mm"])
+        _raise_on_target_reached_within_home_range(
+            report,
+            before_positions,
+            home_parameters.travel_limit,
+            args.position_tolerance,
+            "incremental home",
+        )
+        home_prisms = _unhomed_prisms(report)
 
     raise MazeException(
         "incremental homing did not home all prisms after "
@@ -370,12 +721,19 @@ def _run_post_home_move(
     targets_mm = _post_home_targets(args)
     before_positions = tuple(hmi.read_positions_cluster(cluster_address))
     before_snapshot = _state_snapshot(hmi, cluster_address)
-    if not hmi.write_targets_cluster(cluster_address, targets_mm):
+    try:
+        write_report = _write_cluster_targets(
+            hmi,
+            cluster_address,
+            before_positions,
+            targets_mm,
+            args.post_home_move_mode,
+        )
+    except MazeException as exc:
         after_snapshot = _state_snapshot(hmi, cluster_address)
         raise MazeException(
-            "post-home move: write_targets_cluster failed; "
-            f"before={before_snapshot}; after={after_snapshot}"
-        )
+            f"post-home move: {exc}; before={before_snapshot}; after={after_snapshot}"
+        ) from exc
 
     try:
         final_positions, trace = _wait_for_positions(
@@ -388,21 +746,38 @@ def _run_post_home_move(
             collect_trace=True,
         )
     except MazeException as exc:
-        after_positions = tuple(hmi.read_positions_cluster(cluster_address))
-        stationary = _stationary_prisms(
-            before_positions,
-            after_positions,
-            args.position_tolerance,
-        )
-        after_snapshot = _state_snapshot(hmi, cluster_address)
-        raise MazeException(
-            "post-home move failed; "
-            f"stationary_prisms={stationary}; "
-            f"before_positions_mm={list(before_positions)}; "
-            f"after_positions_mm={list(after_positions)}; "
-            f"targets_mm={list(targets_mm)}; "
-            f"after_snapshot={after_snapshot}"
-        ) from exc
+        if not args.recover_on_move_timeout:
+            after_positions = tuple(hmi.read_positions_cluster(cluster_address))
+            stationary = _stationary_prisms(
+                before_positions,
+                after_positions,
+                args.position_tolerance,
+            )
+            after_snapshot = _state_snapshot(hmi, cluster_address)
+            raise MazeException(
+                "post-home move failed; "
+                f"stationary_prisms={stationary}; "
+                f"before_positions_mm={list(before_positions)}; "
+                f"after_positions_mm={list(after_positions)}; "
+                f"targets_mm={list(targets_mm)}; "
+                f"after_snapshot={after_snapshot}"
+            ) from exc
+        try:
+            recovery_report = _recover_move_timeout(
+                hmi,
+                cluster_address,
+                args,
+                before_positions,
+                targets_mm,
+            )
+            final_positions = tuple(recovery_report["recovered_positions_mm"])
+            trace = []
+        except MazeException as recovery_exc:
+            raise MazeException(f"post-home move failed; recovery failed: {recovery_exc}") from (
+                recovery_exc
+            )
+    else:
+        recovery_report = {"recovered": False}
 
     stationary = _stationary_prisms(before_positions, final_positions, args.position_tolerance)
     if stationary:
@@ -417,6 +792,8 @@ def _run_post_home_move(
         )
 
     return {
+        **write_report,
+        **recovery_report,
         "before_snapshot": before_snapshot,
         "targets_mm": list(targets_mm),
         "final_positions_mm": list(final_positions),
@@ -451,6 +828,7 @@ def _run_trial(
                 cluster_address,
                 args,
                 targets_mm,
+                rng,
                 move_index,
             )
             random_moves.append(move_result)
@@ -526,10 +904,17 @@ def _prepare_cluster(
             raise MazeException(f"cluster {cluster_address} failed power_off_cluster")
         if not hmi.power_on_cluster(cluster_address):
             raise MazeException(f"cluster {cluster_address} failed power_on_cluster")
+    if not hmi.resume_cluster(cluster_address):
+        raise MazeException(f"cluster {cluster_address} failed resume_cluster")
 
     controller_parameters = _controller_parameters(args)
     if not hmi.write_controller_parameters_cluster(cluster_address, controller_parameters):
         raise MazeException("write_controller_parameters_cluster failed")
+    actual_controller_parameters = _verify_controller_parameters(
+        hmi,
+        cluster_address,
+        controller_parameters,
+    )
 
     initial_home_parameters = _home_parameters(args, args.initial_home_travel_limit)
     initial_home = _home_until_all_homed(
@@ -538,21 +923,83 @@ def _prepare_cluster(
         initial_home_parameters,
         args.home_timeout,
         args.poll_interval,
+        args.position_tolerance,
         args.initial_home_attempts,
+        retry_unhomed_only=True,
     )
     return {
         "initial_snapshot": _state_snapshot(hmi, cluster_address),
         "controller_parameters": asdict(controller_parameters),
+        "actual_controller_parameters": asdict(actual_controller_parameters),
         "initial_home_parameters": asdict(initial_home_parameters),
         "initial_home": initial_home,
     }
 
 
 def _validate_args(args: argparse.Namespace) -> None:
+    safe_motion_limits = {
+        "home_max_velocity": SAFE_HOME_MAX_VELOCITY,
+        "start_velocity": SAFE_START_VELOCITY,
+        "stop_velocity": SAFE_STOP_VELOCITY,
+        "first_velocity": SAFE_FIRST_VELOCITY,
+        "max_velocity": SAFE_MAX_VELOCITY,
+        "first_acceleration": SAFE_FIRST_ACCELERATION,
+        "max_acceleration": SAFE_MAX_ACCELERATION,
+        "max_deceleration": SAFE_MAX_DECELERATION,
+        "first_deceleration": SAFE_FIRST_DECELERATION,
+    }
+    uint8_options = (
+        "home_max_velocity",
+        "home_run_current",
+        "start_velocity",
+        "stop_velocity",
+        "first_velocity",
+        "max_velocity",
+        "first_acceleration",
+        "max_acceleration",
+        "max_deceleration",
+        "first_deceleration",
+        "recovery_start_velocity",
+        "recovery_stop_velocity",
+        "recovery_first_velocity",
+        "recovery_max_velocity",
+        "recovery_first_acceleration",
+        "recovery_max_acceleration",
+        "recovery_max_deceleration",
+        "recovery_first_deceleration",
+    )
+    for option_name in uint8_options:
+        option_value = getattr(args, option_name)
+        if option_value < UINT8_MIN or option_value > UINT8_MAX:
+            raise MazeException(f"--{option_name.replace('_', '-')} must be in 0..255")
+    aggressive_options = {
+        option_name: getattr(args, option_name)
+        for option_name, safe_limit in safe_motion_limits.items()
+        if getattr(args, option_name) > safe_limit
+    }
+    if aggressive_options and not args.allow_aggressive_motion_settings:
+        formatted_options = ", ".join(
+            f"--{option_name.replace('_', '-')}={option_value}"
+            for option_name, option_value in aggressive_options.items()
+        )
+        raise MazeException(
+            "aggressive motion settings require --allow-aggressive-motion-settings: "
+            f"{formatted_options}"
+        )
+    if args.home_stall_threshold < INT8_MIN or args.home_stall_threshold > INT8_MAX:
+        raise MazeException("--home-stall-threshold must be in -128..127")
     if args.random_low < 0:
         raise MazeException("--random-low must be non-negative")
     if args.random_low >= args.random_high:
         raise MazeException("--random-low must be less than --random-high")
+    if (
+        args.random_high > EXTENDED_RANDOM_RANGE_THRESHOLD_MM
+        and not args.allow_extended_random_range
+    ):
+        raise MazeException(
+            f"--random-high above {EXTENDED_RANDOM_RANGE_THRESHOLD_MM} mm requires "
+            "--allow-extended-random-range"
+        )
     if args.random_high > 550:
         raise MazeException("--random-high must stay within the 0..550 mm firmware-safe range")
     if args.post_home_target < 0:
@@ -584,24 +1031,24 @@ def _trial_compact_summary(trial: dict[str, object]) -> dict[str, object]:
     random_moves = list(trial.get("random_moves", []))
     home_passes = list(trial.get("home_passes", []))
     post_home_move = dict(trial.get("post_home_move", {}))
-    targets = [
-        target
-        for move in random_moves
-        for target in dict(move).get("targets_mm", [])
-    ]
+    targets = [target for move in random_moves for target in dict(move).get("targets_mm", [])]
     observed_positions = [
-        position
-        for move in random_moves
-        for position in dict(move).get("final_positions_mm", [])
+        position for move in random_moves for position in dict(move).get("final_positions_mm", [])
     ]
     compact.update(
         {
             "random_move_count": len(random_moves),
+            "random_move_modes": [dict(move).get("move_mode") for move in random_moves],
+            "recovered_random_move_count": sum(
+                1 for move in random_moves if dict(move).get("recovered")
+            ),
             "home_pass_count": len(home_passes),
             "max_random_target_mm": max(targets) if targets else None,
             "max_observed_random_position_mm": (
                 max(observed_positions) if observed_positions else None
             ),
+            "post_home_move_mode": post_home_move.get("move_mode"),
+            "post_home_recovered": post_home_move.get("recovered"),
             "post_home_targets_mm": post_home_move.get("targets_mm"),
             "post_home_final_positions_mm": post_home_move.get("final_positions_mm"),
             "post_home_stationary_prisms": post_home_move.get("stationary_prisms"),
@@ -645,8 +1092,7 @@ def main() -> int:
 
     results: list[dict[str, object]] = []
     arguments = {
-        key: str(value) if isinstance(value, Path) else value
-        for key, value in vars(args).items()
+        key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()
     }
     summary: dict[str, object] = {
         "cluster": args.cluster,
