@@ -161,7 +161,9 @@ def _run_trial(
         for prism_index, (homed, outcome, position_mm) in enumerate(
             zip(homed_flags, home_outcomes, home_positions, strict=True)
         )
-        if (not homed) and outcome == HomeOutcome.STALL.name and abs(position_mm) <= args.position_tolerance
+        if (not homed)
+        and outcome == HomeOutcome.STALL.name
+        and abs(position_mm) <= args.position_tolerance
     ]
     if not all(homed_flags) and len(inconsistent_homed_prisms) != len(
         [flag for flag in homed_flags if not flag]
