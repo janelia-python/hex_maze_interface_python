@@ -16,9 +16,9 @@
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 4.1.0
+- Version: 4.3.0
 - Python Version: 3.11
-- Release Date: 2026-04-03
+- Release Date: 2026-05-06
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python
@@ -41,7 +41,7 @@
 
 # Protocol
 
--   protocol-version = 0x04
+-   protocol-version = 0x06
 -   prism-count = 7
 -   command = protocol-version command-length command-number command-parameters
 -   response = protocol-version response-length command-number response-parameters
@@ -85,8 +85,12 @@
 | write-double-target-prism           | '<BBBBHH'            | 8              | 0x17           | prism-address, double-position | '<BBBB'         | 4               | prism-address          |
 | write-double-targets-cluster        | '<BBBHHHHHHHHHHHHHH' | 31             | 0x18           | double-position[prism-count]   | '<BBB'          | 3               |                        |
 | read-home-outcomes-cluster          | '<BBB'               | 3              | 0x19           |                                | '<BBBBBBBBBB'   | 10              | home-outcome[prism-count] |
-| read-prism-diagnostics-cluster      | '<BBB'               | 3              | 0x1A           |                                | '<BBB...'       | 45              | prism-diagnostics[prism-count] |
+| read-prism-diagnostics-cluster      | '<BBB'               | 3              | 0x1A           |                                | '<BBB...'       | 52              | prism-diagnostics[prism-count] |
 | clear-prism-diagnostics-cluster     | '<BBB'               | 3              | 0x1B           |                                | '<BBB'          | 3               |                        |
+| recovery-home-prism                 | '<BBBBHBBb'          | 9              | 0x1C           | prism-address, home-parameters | '<BBBB'         | 4               | prism-address          |
+| recovery-home-cluster               | '<BBBHBBb'           | 8              | 0x1D           | home-parameters                | '<BBB'          | 3               |                        |
+| confirm-home-prism                  | '<BBBB'              | 4              | 0x1E           | prism-address                  | '<BBBB'         | 4               | prism-address          |
+| confirm-home-cluster                | '<BBB'               | 3              | 0x1F           |                                | '<BBB'          | 3               |                        |
 
 
 <a id="org8de352a"></a>
@@ -110,9 +114,16 @@ experimental-rig bring-up:
 from hex_maze_interface import ControllerParameters, HomeParameters
 
 recommended_home_parameters = HomeParameters(
-    travel_limit=250,
-    max_velocity=20,
-    run_current=50,
+    travel_limit=100,
+    max_velocity=10,
+    run_current=43,
+    stall_threshold=0,
+)
+
+recovery_home_parameters = HomeParameters(
+    travel_limit=550,
+    max_velocity=10,
+    run_current=40,
     stall_threshold=0,
 )
 
@@ -137,8 +148,31 @@ Notes:
   insensitive for another prism after a firmware flash. `stall_threshold = 0`
   is the current provisional setting while `last_home_travel_mm` diagnostics
   are used to distinguish true hardstop homes from possible early stalls.
+  Current firmware rejects ordinary-home StallGuard events that are more than
+  `2 mm` earlier than the expected travel, so suspicious stalls no longer
+  immediately zero the prism.
 - Keep commanded positive prism positions clear of the mechanical positive
   hard stop on the real rig.
+- Use ordinary repeated `100 mm` homing when a researcher is present at the
+  rig. Use recovery homing only for rare fully automated preparation where one
+  command must definitely home all prisms.
+- The quiet supervised home profile lowers noise by reducing homing velocity
+  and current. Bench testing showed StallGuard may still miss the hard-stop
+  event at this speed, so this profile relies on bounded travel plus operator
+  supervision, not on StallGuard as a required success signal.
+- `hardware_home_noise_sweep.py` records relative laptop-microphone `dBFS`
+  measurements alongside home outcomes and diagnostics for homing profile
+  comparisons.
+- If a researcher has visually confirmed all prisms are already on the hard
+  stops, `confirm_home_cluster()` marks the cluster homed and zeros driver
+  positions without commanding motion.
+- Current firmware clamps researcher-settable motion parameters before applying
+  them and before reporting controller/current readback:
+  ordinary home travel `1..100 mm`, recovery home travel `1..550 mm`, home
+  velocity `4..12 mm/s`, home current `35..50%`, StallGuard threshold `-10..0`,
+  normal current `40..75%`, normal start/stop velocity `1..10 mm/s`, normal
+  first/max velocity up to `40 mm/s`, normal acceleration/deceleration within
+  the current `20..120`/`20..80 mm/s/s` profile, and normal targets `0..550 mm`.
 
 
 ## Python
@@ -155,13 +189,15 @@ hmi.power_on_cluster(cluster_address)
 prism_address = 2
 home_parameters = HomeParameters()
 home_parameters.travel_limit = 100
-home_parameters.max_velocity = 20
-home_parameters.run_current = 50
+home_parameters.max_velocity = 10
+home_parameters.run_current = 43
 home_parameters.stall_threshold = 0
 # a single prism may be homed
 hmi.home_prism(cluster_address, prism_address, home_parameters)
 # or all prisms in a cluster may be homed at the same time
 hmi.home_cluster(cluster_address, home_parameters)
+hmi.recovery_home_cluster(cluster_address, recovery_home_parameters)
+hmi.confirm_home_cluster(cluster_address)
 hmi.homed_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 # a single prism may be commanded to move immediately
@@ -174,18 +210,18 @@ hmi.write_targets_cluster(cluster_address, (10, 20, 30, 40, 50, 60, 70))
 hmi.resume_cluster(cluster_address)
 print(hmi.read_positions_cluster(cluster_address))
 print(hmi.read_run_current_cluster(cluster_address))
-hmi.write_run_current_cluster(cluster_address, 80)
+hmi.write_run_current_cluster(cluster_address, 75)
 print(hmi.read_run_current_cluster(cluster_address))
 print(hmi.read_controller_parameters_cluster(cluster_address))
 controller_parameters = ControllerParameters()
-controller_parameters.start_velocity = 1
-controller_parameters.stop_velocity = 5
-controller_parameters.first_velocity = 10
-controller_parameters.max_velocity = 20
-controller_parameters.first_acceleration = 40
-controller_parameters.max_acceleration = 20
-controller_parameters.max_deceleration = 30
-controller_parameters.first_deceleration = 50
+controller_parameters.start_velocity = 10
+controller_parameters.stop_velocity = 10
+controller_parameters.first_velocity = 40
+controller_parameters.max_velocity = 40
+controller_parameters.first_acceleration = 120
+controller_parameters.max_acceleration = 80
+controller_parameters.max_deceleration = 80
+controller_parameters.first_deceleration = 120
 hmi.write_controller_parameters_cluster(cluster_address, controller_parameters)
 print(hmi.read_controller_parameters_cluster(cluster_address))
 hmi.write_target_prism(cluster_address, prism_address, 100)
@@ -216,6 +252,9 @@ Commands:
   beep-cluster
   communicating-all-clusters
   communicating-cluster
+  confirm-home-all-clusters
+  confirm-home-cluster
+  confirm-home-prism
   home-all-clusters
   home-cluster
   home-prism
@@ -234,6 +273,9 @@ Commands:
   read-controller-parameters-cluster
   read-positions-cluster
   read-run-current-cluster
+  recovery-home-all-clusters
+  recovery-home-cluster
+  recovery-home-prism
   reset-all-clusters
   reset-cluster
   resume-all-clusters
@@ -260,13 +302,15 @@ maze beep-cluster $CLUSTER_ADDRESS $DURATION_MS
 maze power-on-cluster $CLUSTER_ADDRESS
 PRISM_ADDRESS=2
 TRAVEL_LIMIT=100
-MAX_VELOCITY=20
-RUN_CURRENT=50
+MAX_VELOCITY=10
+RUN_CURRENT=43
 STALL_THRESHOLD=0
 # a single prism may be homed
 maze home-prism $CLUSTER_ADDRESS $PRISM_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
 # or all prisms in a cluster may be homed at the same time
 maze home-cluster $CLUSTER_ADDRESS $TRAVEL_LIMIT $MAX_VELOCITY $RUN_CURRENT $STALL_THRESHOLD
+maze recovery-home-cluster $CLUSTER_ADDRESS 550 10 40 0
+maze confirm-home-cluster $CLUSTER_ADDRESS
 maze homed-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
 # a single prism may be commanded to move immediately
@@ -279,16 +323,16 @@ maze write-targets-cluster $CLUSTER_ADDRESS 10 20 30 40 50 60 70
 maze resume-cluster $CLUSTER_ADDRESS
 maze read-positions-cluster $CLUSTER_ADDRESS
 maze read-run-current-cluster $CLUSTER_ADDRESS
-maze write-run-current-cluster $CLUSTER_ADDRESS 80
+maze write-run-current-cluster $CLUSTER_ADDRESS 75
 maze read-run-current-cluster $CLUSTER_ADDRESS
-START_VELOCITY=1
-STOP_VELOCITY=5
-FIRST_VELOCITY=10
-MAX_VELOCITY=20
-FIRST_ACCELERATION=40
-MAX_ACCELERATION=20
-MAX_DECELERATION=30
-FIRST_DECELERATION=50
+START_VELOCITY=10
+STOP_VELOCITY=10
+FIRST_VELOCITY=40
+MAX_VELOCITY=40
+FIRST_ACCELERATION=120
+MAX_ACCELERATION=80
+MAX_DECELERATION=80
+FIRST_DECELERATION=120
 maze write-controller-parameters-cluster $CLUSTER_ADDRESS \
 $START_VELOCITY $STOP_VELOCITY $FIRST_VELOCITY $MAX_VELOCITY $FIRST_ACCELERATION \
 $MAX_ACCELERATION $MAX_DECELERATION $FIRST_DECELERATION

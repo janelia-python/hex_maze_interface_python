@@ -21,8 +21,8 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster", type=int, required=True)
     parser.add_argument("--prism", type=int, default=0, help="Primary prism for per-prism tests.")
-    parser.add_argument("--initial-travel-limit", type=int, default=700)
-    parser.add_argument("--travel-limit", type=int, default=250)
+    parser.add_argument("--initial-travel-limit", type=int, default=100)
+    parser.add_argument("--travel-limit", type=int, default=100)
     parser.add_argument("--position-timeout", type=float, default=20.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)
@@ -183,8 +183,8 @@ def _initial_home(
 ) -> list[dict[str, object]]:
     home_parameters = HomeParameters(
         travel_limit=args.initial_travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
     return _home_until_all_homed(
@@ -206,8 +206,8 @@ def _repeat_home_test(
     move_targets = tuple(80 + 5 * prism_address for prism_address in range(hmi.PRISM_COUNT))
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
 
@@ -246,8 +246,8 @@ def _command_during_home_test(
     injected_targets = tuple(130 + 10 * prism_address for prism_address in range(hmi.PRISM_COUNT))
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
 
@@ -414,8 +414,8 @@ def _final_cleanup_home(
 ) -> dict[str, object]:
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
     report = _home_until_all_homed(
@@ -441,8 +441,8 @@ def _parameter_persistence_test(
     controller_parameters = ControllerParameters(2, 6, 11, 21, 41, 22, 31, 51)
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
 

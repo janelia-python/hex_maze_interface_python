@@ -250,6 +250,103 @@ def home_all_clusters(
 
 @cli.command()
 @click.argument("cluster-address", type=int)
+@click.argument("prism-address", type=int)
+@click.argument("travel-limit", type=int)
+@click.argument("max-velocity", type=int)
+@click.argument("run-current", type=int)
+@click.argument("stall-threshold", type=int)
+@pass_hex_maze_interface
+def recovery_home_prism(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    prism_address: int,
+    travel_limit: int,
+    max_velocity: int,
+    run_current: int,
+    stall_threshold: int,
+) -> None:
+    _emit(
+        hmi.recovery_home_prism(
+            cluster_address,
+            prism_address,
+            _home_parameters(travel_limit, max_velocity, run_current, stall_threshold),
+        ),
+        as_json=False,
+    )
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
+@click.argument("travel-limit", type=int)
+@click.argument("max-velocity", type=int)
+@click.argument("run-current", type=int)
+@click.argument("stall-threshold", type=int)
+@pass_hex_maze_interface
+def recovery_home_cluster(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    travel_limit: int,
+    max_velocity: int,
+    run_current: int,
+    stall_threshold: int,
+) -> None:
+    _emit(
+        hmi.recovery_home_cluster(
+            cluster_address,
+            _home_parameters(travel_limit, max_velocity, run_current, stall_threshold),
+        ),
+        as_json=False,
+    )
+
+
+@cli.command()
+@click.argument("travel-limit", type=int)
+@click.argument("max-velocity", type=int)
+@click.argument("run-current", type=int)
+@click.argument("stall-threshold", type=int)
+@pass_hex_maze_interface
+def recovery_home_all_clusters(
+    hmi: HexMazeInterface,
+    travel_limit: int,
+    max_velocity: int,
+    run_current: int,
+    stall_threshold: int,
+) -> None:
+    _emit(
+        hmi.recovery_home_all_clusters(
+            _home_parameters(travel_limit, max_velocity, run_current, stall_threshold)
+        ),
+        as_json=False,
+    )
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
+@click.argument("prism-address", type=int)
+@pass_hex_maze_interface
+def confirm_home_prism(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+    prism_address: int,
+) -> None:
+    _emit(hmi.confirm_home_prism(cluster_address, prism_address), as_json=False)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
+@pass_hex_maze_interface
+def confirm_home_cluster(hmi: HexMazeInterface, cluster_address: int) -> None:
+    _emit(hmi.confirm_home_cluster(cluster_address), as_json=False)
+
+
+@cli.command()
+@pass_hex_maze_interface
+def confirm_home_all_clusters(hmi: HexMazeInterface) -> None:
+    _emit(hmi.confirm_home_all_clusters(), as_json=False)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
 @pass_hex_maze_interface
 def homed_cluster(hmi: HexMazeInterface, cluster_address: int) -> None:
     _emit(hmi.homed_cluster(cluster_address), as_json=False)

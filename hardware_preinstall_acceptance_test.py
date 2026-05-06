@@ -14,8 +14,8 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster", type=int, required=True)
     parser.add_argument("--prism", type=int, default=0, help="Primary prism for per-prism tests.")
-    parser.add_argument("--initial-travel-limit", type=int, default=700)
-    parser.add_argument("--travel-limit", type=int, default=250)
+    parser.add_argument("--initial-travel-limit", type=int, default=100)
+    parser.add_argument("--travel-limit", type=int, default=100)
     parser.add_argument("--position-timeout", type=float, default=20.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)
@@ -187,8 +187,8 @@ def _initial_home(
 ) -> list[dict[str, object]]:
     home_parameters = HomeParameters(
         travel_limit=args.initial_travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
     return _home_until_expected_homed(
@@ -211,8 +211,8 @@ def _single_prism_home_isolation_test(
     staged_targets = tuple(90 + 10 * index for index in range(hmi.PRISM_COUNT))
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
 
@@ -287,8 +287,8 @@ def _cluster_pause_resume_test(
 ) -> dict[str, object]:
     home_parameters = HomeParameters(
         travel_limit=args.travel_limit,
-        max_velocity=20,
-        run_current=50,
+        max_velocity=10,
+        run_current=43,
         stall_threshold=0,
     )
     initial_targets = tuple(40 + 10 * index for index in range(hmi.PRISM_COUNT))

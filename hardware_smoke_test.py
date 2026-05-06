@@ -14,11 +14,11 @@ from hex_maze_interface import HexMazeInterface, HomeOutcome, HomeParameters, Ma
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--clusters", type=int, nargs="+", required=True)
-    parser.add_argument("--initial-travel-limit", type=int, default=700)
-    parser.add_argument("--travel-limit", type=int, default=250)
-    parser.add_argument("--initial-home-attempts", type=int, default=3)
-    parser.add_argument("--max-velocity", type=int, default=20)
-    parser.add_argument("--run-current", type=int, default=50)
+    parser.add_argument("--initial-travel-limit", type=int, default=100)
+    parser.add_argument("--travel-limit", type=int, default=100)
+    parser.add_argument("--initial-home-attempts", type=int, default=7)
+    parser.add_argument("--max-velocity", type=int, default=6)
+    parser.add_argument("--run-current", type=int, default=43)
     parser.add_argument("--stall-threshold", type=int, default=0)
     parser.add_argument("--move", type=int, default=40, help="Positive post-home target in mm.")
     parser.add_argument(
@@ -52,7 +52,7 @@ def _parse_args() -> argparse.Namespace:
         help="Random seed for reproducible pre-home positions.",
     )
     parser.add_argument("--poll-interval", type=float, default=0.25)
-    parser.add_argument("--home-timeout", type=float, default=20.0)
+    parser.add_argument("--home-timeout", type=float, default=30.0)
     parser.add_argument("--debug", action="store_true")
     return parser.parse_args()
 

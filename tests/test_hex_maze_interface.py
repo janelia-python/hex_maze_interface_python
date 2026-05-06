@@ -23,12 +23,25 @@ def test_encode_command_with_tuple_parameters() -> None:
         (2, 100, 20, 50, 10),
     )
 
-    assert command == struct.pack("<BBBBHBBb", 0x04, 9, 0x09, 2, 100, 20, 50, 10)
+    assert command == struct.pack(
+        "<BBBBHBBb",
+        HexMazeInterface.PROTOCOL_VERSION,
+        9,
+        0x09,
+        2,
+        100,
+        20,
+        50,
+        10,
+    )
 
 
 def test_validate_response_rejects_wrong_command() -> None:
     with pytest.raises(MazeException, match="response command-number is 17 not 16"):
-        HexMazeInterface._validate_response(bytes((0x04, 3, 17)), 16)
+        HexMazeInterface._validate_response(
+            bytes((HexMazeInterface.PROTOCOL_VERSION, 3, 17)),
+            16,
+        )
 
 
 def test_write_targets_cluster_validates_prism_count() -> None:
@@ -69,7 +82,7 @@ def test_verify_cluster_collects_non_destructive_status() -> None:
     assert report["cluster_address"] == 10
     assert report["checks"]["positions_mm"] == [10, 20, 30, 40, 50, 60, 70]
     assert report["checks"]["run_current_percent"] == 80
-    assert report["checks"]["controller_parameters"]["max_velocity"] == 20
+    assert report["checks"]["controller_parameters"]["max_velocity"] == 40
     assert report["checks"]["prism_diagnostics"][0]["communicating"] is True
 
 
@@ -101,10 +114,54 @@ def test_read_prism_diagnostics_cluster_decodes_fault_flags() -> None:
     assert diagnostics[1].has_fault() is False
 
 
+def test_recovery_home_prism_uses_recovery_command() -> None:
+    hmi = HexMazeInterface()
+    calls = []
+    hmi._bool_command = lambda *args, **kwargs: calls.append((args, kwargs)) or True
+
+    ok = hmi.recovery_home_prism(10, 2, HomeParameters(550, 10, 40, 0))
+
+    assert ok is True
+    assert calls == [((10, "<BBBBHBBb", 9, 0x1C, (2, 550, 10, 40, 0), "<B", 1), {})]
+
+
+def test_recovery_home_cluster_uses_recovery_command() -> None:
+    hmi = HexMazeInterface()
+    calls = []
+    hmi._bool_command = lambda *args, **kwargs: calls.append((args, kwargs)) or True
+
+    ok = hmi.recovery_home_cluster(10, HomeParameters(550, 10, 40, 0))
+
+    assert ok is True
+    assert calls == [((10, "<BBBHBBb", 8, 0x1D, (550, 10, 40, 0)), {})]
+
+
+def test_confirm_home_prism_uses_confirm_command() -> None:
+    hmi = HexMazeInterface()
+    calls = []
+    hmi._bool_command = lambda *args, **kwargs: calls.append((args, kwargs)) or True
+
+    ok = hmi.confirm_home_prism(10, 2)
+
+    assert ok is True
+    assert calls == [((10, "<BBBB", 4, 0x1E, 2, "<B", 1), {})]
+
+
+def test_confirm_home_cluster_uses_confirm_command() -> None:
+    hmi = HexMazeInterface()
+    calls = []
+    hmi._bool_command = lambda *args, **kwargs: calls.append((args, kwargs)) or True
+
+    ok = hmi.confirm_home_cluster(10)
+
+    assert ok is True
+    assert calls == [((10, "<BBB", 3, 0x1F), {})]
+
+
 def test_home_parameters_string_format() -> None:
     params = HomeParameters()
 
-    assert "travel_limit = 500" in str(params)
+    assert "travel_limit = 100" in str(params)
 
 
 def test_read_home_outcomes_cluster_decodes_enum_values() -> None:
@@ -122,6 +179,15 @@ def test_read_home_outcomes_cluster_decodes_enum_values() -> None:
         HomeOutcome.NONE,
         HomeOutcome.STALL,
     )
+
+
+def test_read_home_outcomes_cluster_decodes_confirmed_value() -> None:
+    hmi = HexMazeInterface()
+    hmi._send_cluster_cmd_receive_rsp_params = lambda *args, **kwargs: (5, 0, 0, 0, 0, 0, 0)
+
+    outcomes = hmi.read_home_outcomes_cluster(10)
+
+    assert outcomes[0] == HomeOutcome.CONFIRMED
 
 
 def test_power_on_cluster_waits_for_prism_settle() -> None:

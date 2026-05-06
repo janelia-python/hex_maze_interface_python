@@ -19,9 +19,9 @@ from hex_maze_interface import (
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster", type=int, required=True)
-    parser.add_argument("--home-travel-limit", type=int, default=250)
-    parser.add_argument("--home-max-velocity", type=int, default=20)
-    parser.add_argument("--home-run-current", type=int, default=50)
+    parser.add_argument("--home-travel-limit", type=int, default=100)
+    parser.add_argument("--home-max-velocity", type=int, default=6)
+    parser.add_argument("--home-run-current", type=int, default=43)
     parser.add_argument("--home-stall-threshold", type=int, default=0)
     parser.add_argument("--position-timeout", type=float, default=20.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)

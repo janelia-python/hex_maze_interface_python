@@ -24,6 +24,11 @@ from hex_maze_interface import (
 DEFAULT_RANDOM_HIGH_MM = 120
 DEFAULT_INITIAL_HOME_TRAVEL_LIMIT_MM = 100
 DEFAULT_INITIAL_HOME_ATTEMPTS = 7
+DEFAULT_INITIAL_HOME_MAX_VELOCITY = 10
+DEFAULT_INITIAL_HOME_RUN_CURRENT = 43
+DEFAULT_INITIAL_HOME_STALL_THRESHOLD = 0
+DEFAULT_INITIAL_HOME_TIMEOUT_S = 25.0
+DEFAULT_STALL_PLAUSIBILITY_TOLERANCE_MM = 2
 EXTENDED_RANDOM_RANGE_THRESHOLD_MM = 150
 SAFE_START_VELOCITY = 10
 SAFE_STOP_VELOCITY = 10
@@ -33,7 +38,8 @@ SAFE_FIRST_ACCELERATION = 120
 SAFE_MAX_ACCELERATION = 80
 SAFE_MAX_DECELERATION = 80
 SAFE_FIRST_DECELERATION = 120
-SAFE_HOME_MAX_VELOCITY = 20
+SAFE_HOME_MAX_VELOCITY = 10
+SAFE_HOME_RUN_CURRENT = 43
 SAFE_HOME_STALL_THRESHOLD = 0
 UINT8_MIN = 0
 UINT8_MAX = 255
@@ -79,8 +85,38 @@ def _parse_args() -> argparse.Namespace:
         default=DEFAULT_INITIAL_HOME_TRAVEL_LIMIT_MM,
     )
     parser.add_argument("--initial-home-attempts", type=int, default=DEFAULT_INITIAL_HOME_ATTEMPTS)
+    parser.add_argument(
+        "--initial-home-mode",
+        choices=("ordinary", "recovery"),
+        default="ordinary",
+        help=(
+            "Use ordinary repeated 100 mm homing for researcher-shaped runs, or "
+            "explicit recovery homing for rare fully automated preparation. "
+            "Recovery mode should normally use --initial-home-travel-limit 550."
+        ),
+    )
+    parser.add_argument(
+        "--initial-home-max-velocity",
+        type=int,
+        default=DEFAULT_INITIAL_HOME_MAX_VELOCITY,
+    )
+    parser.add_argument(
+        "--initial-home-run-current",
+        type=int,
+        default=DEFAULT_INITIAL_HOME_RUN_CURRENT,
+    )
+    parser.add_argument(
+        "--initial-home-stall-threshold",
+        type=int,
+        default=DEFAULT_INITIAL_HOME_STALL_THRESHOLD,
+    )
+    parser.add_argument(
+        "--initial-home-timeout",
+        type=float,
+        default=DEFAULT_INITIAL_HOME_TIMEOUT_S,
+    )
     parser.add_argument("--home-max-velocity", type=int, default=SAFE_HOME_MAX_VELOCITY)
-    parser.add_argument("--home-run-current", type=int, default=50)
+    parser.add_argument("--home-run-current", type=int, default=SAFE_HOME_RUN_CURRENT)
     parser.add_argument("--home-stall-threshold", type=int, default=SAFE_HOME_STALL_THRESHOLD)
     parser.add_argument("--post-home-target", type=int, default=40)
     parser.add_argument("--post-home-step", type=int, default=0)
@@ -104,6 +140,14 @@ def _parse_args() -> argparse.Namespace:
         help=(
             "Allow velocity or acceleration values above the current desk-rig safe profile. "
             "Use only for supervised tuning; audible slipping invalidates a passing run."
+        ),
+    )
+    parser.add_argument(
+        "--allow-clamped-controller-readback",
+        action="store_true",
+        help=(
+            "Allow controller parameter readback to differ from the requested values. "
+            "Use this only when testing firmware-side clamps for unsafe requested values."
         ),
     )
     parser.add_argument(
@@ -137,7 +181,16 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--position-timeout", type=float, default=35.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)
-    parser.add_argument("--position-tolerance", type=int, default=5)
+    parser.add_argument("--position-tolerance", type=int, default=1)
+    parser.add_argument(
+        "--stall-plausibility-tolerance",
+        type=int,
+        default=DEFAULT_STALL_PLAUSIBILITY_TOLERANCE_MM,
+        help=(
+            "Fail if a STALL home outcome reports last_home_travel_mm more than this "
+            "many millimeters short of the prism's pre-home position."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=10)
     parser.add_argument("--power-cycle-before-start", action="store_true")
     parser.add_argument(
@@ -212,9 +265,12 @@ def _verify_controller_parameters(
     hmi: HexMazeInterface,
     cluster_address: int,
     expected: ControllerParameters,
+    allow_clamped_readback: bool = False,
 ) -> ControllerParameters:
     actual = hmi.read_controller_parameters_cluster(cluster_address)
     if actual.to_tuple() != expected.to_tuple():
+        if allow_clamped_readback:
+            return actual
         raise MazeException(
             "controller parameter readback mismatch: "
             f"expected={asdict(expected)}, actual={asdict(actual)}"
@@ -228,6 +284,15 @@ def _home_parameters(args: argparse.Namespace, travel_limit: int) -> HomeParamet
         max_velocity=args.home_max_velocity,
         run_current=args.home_run_current,
         stall_threshold=args.home_stall_threshold,
+    )
+
+
+def _initial_home_parameters(args: argparse.Namespace) -> HomeParameters:
+    return HomeParameters(
+        travel_limit=args.initial_home_travel_limit,
+        max_velocity=args.initial_home_max_velocity,
+        run_current=args.initial_home_run_current,
+        stall_threshold=args.initial_home_stall_threshold,
     )
 
 
@@ -313,6 +378,23 @@ def _wait_for_home(
                 f"{[outcome.name for outcome in outcomes]}"
             )
         if all(outcome != HomeOutcome.IN_PROGRESS for outcome in outcomes):
+            time.sleep(poll_interval_s)
+            elapsed_s = time.monotonic() - start
+            homed = tuple(bool(value) for value in hmi.homed_cluster(cluster_address))
+            outcomes = tuple(hmi.read_home_outcomes_cluster(cluster_address))
+            positions = tuple(hmi.read_positions_cluster(cluster_address))
+            sample = {
+                "elapsed_s": round(elapsed_s, 3),
+                "homed": list(homed),
+                "outcomes": [outcome.name for outcome in outcomes],
+                "positions_mm": list(positions),
+            }
+            samples.append(sample)
+            if any(outcome == HomeOutcome.FAILED for outcome in outcomes):
+                raise MazeException(
+                    f"cluster {cluster_address} reported failed home outcome: "
+                    f"{[outcome.name for outcome in outcomes]}"
+                )
             return {
                 "elapsed_s": round(elapsed_s, 3),
                 "homed": list(homed),
@@ -343,9 +425,11 @@ def _home_until_all_homed(
     timeout_s: float,
     poll_interval_s: float,
     position_tolerance_mm: int,
+    stall_plausibility_tolerance_mm: int,
     max_attempts: int,
     *,
     retry_unhomed_only: bool,
+    recovery_home: bool,
 ) -> list[dict[str, object]]:
     reports: list[dict[str, object]] = []
     unhomed_prisms = tuple(range(HexMazeInterface.PRISM_COUNT))
@@ -353,7 +437,12 @@ def _home_until_all_homed(
         if attempt_index == 0 or not retry_unhomed_only:
             home_scope = "cluster"
             homed_prisms: tuple[int, ...] = tuple(range(HexMazeInterface.PRISM_COUNT))
-            if not hmi.home_cluster(cluster_address, home_parameters):
+            home_started = (
+                hmi.recovery_home_cluster(cluster_address, home_parameters)
+                if recovery_home
+                else hmi.home_cluster(cluster_address, home_parameters)
+            )
+            if not home_started:
                 raise MazeException(
                     f"cluster {cluster_address} failed to start homing on attempt {attempt_index}"
                 )
@@ -361,7 +450,12 @@ def _home_until_all_homed(
             home_scope = "prisms"
             homed_prisms = unhomed_prisms
             for prism_address in unhomed_prisms:
-                if not hmi.home_prism(cluster_address, prism_address, home_parameters):
+                home_started = (
+                    hmi.recovery_home_prism(cluster_address, prism_address, home_parameters)
+                    if recovery_home
+                    else hmi.home_prism(cluster_address, prism_address, home_parameters)
+                )
+                if not home_started:
                     raise MazeException(
                         "cluster "
                         f"{cluster_address} failed to start homing prism {prism_address} "
@@ -371,8 +465,18 @@ def _home_until_all_homed(
         report = _wait_for_home(hmi, cluster_address, timeout_s, poll_interval_s)
         report["attempt"] = attempt_index
         report["home_scope"] = home_scope
+        report["home_mode"] = "recovery" if recovery_home else "ordinary"
         report["homed_prisms"] = list(homed_prisms)
         report["before_positions_mm"] = list(before_positions)
+        report["prism_diagnostics"] = _diagnostics_snapshot(hmi, cluster_address)
+        _raise_on_implausible_stall(
+            report,
+            before_positions,
+            report["prism_diagnostics"],
+            homed_prisms,
+            stall_plausibility_tolerance_mm,
+            "initial home",
+        )
         reports.append(report)
         if all(report["homed"]):
             return reports
@@ -455,6 +559,60 @@ def _raise_on_target_reached_within_home_range(
     )
 
 
+def _raise_on_implausible_stall(
+    report: dict[str, object],
+    before_positions_mm: tuple[int, ...],
+    diagnostics: object,
+    homed_prisms: tuple[int, ...],
+    tolerance_mm: int,
+    context: str,
+) -> None:
+    outcomes = tuple(str(value).upper() for value in report["outcomes"])
+    stall_prisms = tuple(
+        prism_index
+        for prism_index in homed_prisms
+        if outcomes[prism_index] == HomeOutcome.STALL.name
+    )
+    if not stall_prisms:
+        return
+    if isinstance(diagnostics, dict):
+        raise MazeException(
+            f"{context}: cannot validate STALL plausibility because diagnostics "
+            f"read failed: {diagnostics}"
+        )
+
+    diagnostic_rows = list(diagnostics)
+    affected: list[dict[str, int]] = []
+    for prism_index in stall_prisms:
+        expected_start_mm = max(0, int(before_positions_mm[prism_index]))
+        if expected_start_mm <= tolerance_mm:
+            continue
+        try:
+            last_home_travel_mm = int(
+                dict(diagnostic_rows[prism_index])["last_home_travel_mm"]
+            )
+        except (IndexError, KeyError, TypeError, ValueError) as exc:
+            raise MazeException(
+                f"{context}: diagnostics did not include last_home_travel_mm "
+                f"for prism {prism_index}: {diagnostics}"
+            ) from exc
+        if last_home_travel_mm + tolerance_mm < expected_start_mm:
+            affected.append(
+                {
+                    "prism": prism_index,
+                    "before_position_mm": expected_start_mm,
+                    "last_home_travel_mm": last_home_travel_mm,
+                    "tolerance_mm": tolerance_mm,
+                }
+            )
+    if not affected:
+        return
+    raise MazeException(
+        f"{context}: implausible STALL home outcome(s) detected; aborting "
+        f"instead of trusting a possible false zero: {affected}; report={report}"
+    )
+
+
 def _wait_for_positions(
     hmi: HexMazeInterface,
     cluster_address: int,
@@ -488,9 +646,26 @@ def _wait_for_positions(
             abs(position - target) <= tolerance_mm
             for position, target in zip(positions, targets_mm, strict=True)
         ):
-            if not collect_trace:
-                trace = [first_sample, last_sample] if first_sample != last_sample else [sample]
-            return positions, trace
+            time.sleep(poll_interval_s)
+            settled_positions = tuple(hmi.read_positions_cluster(cluster_address))
+            settled_sample = {
+                "elapsed_s": round(time.monotonic() - start, 3),
+                "positions_mm": list(settled_positions),
+            }
+            last_sample = settled_sample
+            if collect_trace:
+                trace.append(settled_sample)
+            if all(
+                abs(position - target) <= tolerance_mm
+                for position, target in zip(settled_positions, targets_mm, strict=True)
+            ):
+                if not collect_trace:
+                    trace = (
+                        [first_sample, last_sample]
+                        if first_sample != last_sample
+                        else [settled_sample]
+                    )
+                return settled_positions, trace
         time.sleep(poll_interval_s)
 
     if not collect_trace and first_sample is not None and last_sample is not None:
@@ -579,6 +754,7 @@ def _recover_move_timeout(
         hmi,
         cluster_address,
         recovery_parameters,
+        args.allow_clamped_controller_readback,
     )
     if not hmi.write_targets_cluster(cluster_address, targets_mm):
         raise MazeException("recovery write_targets_cluster failed")
@@ -694,10 +870,20 @@ def _run_incremental_home(
             "before": before,
             "after": report,
         }
+        after_diagnostics = _diagnostics_snapshot(hmi, cluster_address)
+        home_pass["after_prism_diagnostics"] = after_diagnostics
+        before_positions = tuple(int(position) for position in before["positions_mm"])
+        _raise_on_implausible_stall(
+            report,
+            before_positions,
+            after_diagnostics,
+            home_prisms,
+            args.stall_plausibility_tolerance,
+            "incremental home",
+        )
         home_passes.append(home_pass)
         if all(report["homed"]):
             return home_passes
-        before_positions = tuple(int(position) for position in before["positions_mm"])
         _raise_on_target_reached_within_home_range(
             report,
             before_positions,
@@ -914,23 +1100,27 @@ def _prepare_cluster(
         hmi,
         cluster_address,
         controller_parameters,
+        args.allow_clamped_controller_readback,
     )
 
-    initial_home_parameters = _home_parameters(args, args.initial_home_travel_limit)
+    initial_home_parameters = _initial_home_parameters(args)
     initial_home = _home_until_all_homed(
         hmi,
         cluster_address,
         initial_home_parameters,
-        args.home_timeout,
+        args.initial_home_timeout,
         args.poll_interval,
         args.position_tolerance,
+        args.stall_plausibility_tolerance,
         args.initial_home_attempts,
         retry_unhomed_only=True,
+        recovery_home=args.initial_home_mode == "recovery",
     )
     return {
         "initial_snapshot": _state_snapshot(hmi, cluster_address),
         "controller_parameters": asdict(controller_parameters),
         "actual_controller_parameters": asdict(actual_controller_parameters),
+        "initial_home_mode": args.initial_home_mode,
         "initial_home_parameters": asdict(initial_home_parameters),
         "initial_home": initial_home,
     }
@@ -938,6 +1128,7 @@ def _prepare_cluster(
 
 def _validate_args(args: argparse.Namespace) -> None:
     safe_motion_limits = {
+        "initial_home_max_velocity": SAFE_HOME_MAX_VELOCITY,
         "home_max_velocity": SAFE_HOME_MAX_VELOCITY,
         "start_velocity": SAFE_START_VELOCITY,
         "stop_velocity": SAFE_STOP_VELOCITY,
@@ -949,6 +1140,8 @@ def _validate_args(args: argparse.Namespace) -> None:
         "first_deceleration": SAFE_FIRST_DECELERATION,
     }
     uint8_options = (
+        "initial_home_max_velocity",
+        "initial_home_run_current",
         "home_max_velocity",
         "home_run_current",
         "start_velocity",
@@ -986,8 +1179,11 @@ def _validate_args(args: argparse.Namespace) -> None:
             "aggressive motion settings require --allow-aggressive-motion-settings: "
             f"{formatted_options}"
         )
-    if args.home_stall_threshold < INT8_MIN or args.home_stall_threshold > INT8_MAX:
-        raise MazeException("--home-stall-threshold must be in -128..127")
+    int8_options = ("initial_home_stall_threshold", "home_stall_threshold")
+    for option_name in int8_options:
+        option_value = getattr(args, option_name)
+        if option_value < INT8_MIN or option_value > INT8_MAX:
+            raise MazeException(f"--{option_name.replace('_', '-')} must be in -128..127")
     if args.random_low < 0:
         raise MazeException("--random-low must be non-negative")
     if args.random_low >= args.random_high:
@@ -1011,8 +1207,22 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise MazeException("post-home targets must stay within the 0..550 mm range")
     if args.incremental_home_travel_limit <= 0:
         raise MazeException("--incremental-home-travel-limit must be positive")
+    if args.initial_home_travel_limit <= 0:
+        raise MazeException("--initial-home-travel-limit must be positive")
+    if args.initial_home_mode == "recovery" and args.initial_home_travel_limit < 550:
+        raise MazeException(
+            "--initial-home-mode recovery is for fully automated preparation and "
+            "requires --initial-home-travel-limit 550; use ordinary mode for "
+            "staged researcher-style 100 mm homes"
+        )
+    if args.initial_home_attempts <= 0:
+        raise MazeException("--initial-home-attempts must be positive")
+    if args.initial_home_timeout <= 0:
+        raise MazeException("--initial-home-timeout must be positive")
     if args.max_home_passes <= 0:
         raise MazeException("--max-home-passes must be positive")
+    if args.stall_plausibility_tolerance < 0:
+        raise MazeException("--stall-plausibility-tolerance must be non-negative")
 
 
 def _trial_compact_summary(trial: dict[str, object]) -> dict[str, object]:

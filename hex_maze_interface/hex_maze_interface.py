@@ -31,13 +31,14 @@ class HomeOutcome(IntEnum):
     STALL = 2
     TARGET_REACHED = 3
     FAILED = 4
+    CONFIRMED = 5
 
 
 @dataclass(slots=True)
 class HomeParameters:
-    travel_limit: int = 500
-    max_velocity: int = 20
-    run_current: int = 50
+    travel_limit: int = 100
+    max_velocity: int = 10
+    run_current: int = 43
     stall_threshold: int = 0
 
     def to_tuple(self) -> tuple[int, int, int, int]:
@@ -54,14 +55,14 @@ class HomeParameters:
 
 @dataclass(slots=True)
 class ControllerParameters:
-    start_velocity: int = 1
-    stop_velocity: int = 5
-    first_velocity: int = 10
-    max_velocity: int = 20
-    first_acceleration: int = 40
-    max_acceleration: int = 20
-    max_deceleration: int = 30
-    first_deceleration: int = 50
+    start_velocity: int = 10
+    stop_velocity: int = 10
+    first_velocity: int = 40
+    max_velocity: int = 40
+    first_acceleration: int = 120
+    max_acceleration: int = 80
+    max_deceleration: int = 80
+    first_deceleration: int = 120
 
     def to_tuple(self) -> tuple[int, int, int, int, int, int, int, int]:
         return (
@@ -167,7 +168,7 @@ class HexMazeInterface:
     IP_BASE = "192.168.10."
     IP_RANGE = IP_BASE + "0/24"
     REPEAT_LIMIT = 2
-    PROTOCOL_VERSION = 0x04
+    PROTOCOL_VERSION = 0x06
     ERROR_RESPONSE = 0xEE
     CHECK_COMMUNICATION_RESPONSE = 0x12345678
     CLUSTER_ADDRESS_MIN = 10
@@ -530,6 +531,41 @@ class HexMazeInterface:
             for cluster_address in self.CLUSTER_ADDRESSES
         ]
 
+    def recovery_home_prism(
+        self,
+        cluster_address: int,
+        prism_address: int,
+        home_parameters: HomeParameters,
+    ) -> bool:
+        self._validate_prism_address(prism_address)
+        cmd_par = (prism_address, *home_parameters.to_tuple())
+        return self._bool_command(cluster_address, "<BBBBHBBb", 9, 0x1C, cmd_par, "<B", 1)
+
+    def recovery_home_cluster(
+        self,
+        cluster_address: int,
+        home_parameters: HomeParameters,
+    ) -> bool:
+        return self._bool_command(cluster_address, "<BBBHBBb", 8, 0x1D, home_parameters.to_tuple())
+
+    def recovery_home_all_clusters(self, home_parameters: HomeParameters) -> list[bool]:
+        return [
+            self.recovery_home_cluster(cluster_address, home_parameters)
+            for cluster_address in self.CLUSTER_ADDRESSES
+        ]
+
+    def confirm_home_prism(self, cluster_address: int, prism_address: int) -> bool:
+        self._validate_prism_address(prism_address)
+        return self._bool_command(cluster_address, "<BBBB", 4, 0x1E, prism_address, "<B", 1)
+
+    def confirm_home_cluster(self, cluster_address: int) -> bool:
+        return self._bool_command(cluster_address, "<BBB", 3, 0x1F)
+
+    def confirm_home_all_clusters(self) -> list[bool]:
+        return [
+            self.confirm_home_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES
+        ]
+
     def homed_cluster(self, cluster_address: int) -> tuple[int, ...]:
         return self._send_cluster_cmd_receive_rsp_params(
             cluster_address, "<BBB", 3, 0x0B, None, "<BBBBBBB", 7
@@ -554,8 +590,8 @@ class HexMazeInterface:
             3,
             0x1A,
             None,
-            "<" + "BBHBB" * self.PRISM_COUNT,
-            6 * self.PRISM_COUNT,
+            "<" + "BBHBH" * self.PRISM_COUNT,
+            7 * self.PRISM_COUNT,
         )
         return tuple(
             PrismDiagnostics.from_wire(*values[index : index + 5])

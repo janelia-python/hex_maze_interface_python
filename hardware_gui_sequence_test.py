@@ -29,18 +29,18 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--home-travel-limit",
         type=int,
-        default=250,
-        help="Validated default is longer than the GUI button's historical 100 mm home.",
+        default=100,
+        help="Researcher-supervised incremental home travel.",
     )
-    parser.add_argument("--home-max-velocity", type=int, default=20)
-    parser.add_argument("--home-run-current", type=int, default=50)
+    parser.add_argument("--home-max-velocity", type=int, default=6)
+    parser.add_argument("--home-run-current", type=int, default=43)
     parser.add_argument("--home-stall-threshold", type=int, default=0)
     parser.add_argument("--position-timeout", type=float, default=20.0)
     parser.add_argument("--home-timeout", type=float, default=25.0)
     parser.add_argument("--poll-interval", type=float, default=0.25)
     parser.add_argument("--position-tolerance", type=int, default=5)
-    parser.add_argument("--start-velocity", type=int, default=20)
-    parser.add_argument("--stop-velocity", type=int, default=20)
+    parser.add_argument("--start-velocity", type=int, default=10)
+    parser.add_argument("--stop-velocity", type=int, default=10)
     parser.add_argument("--first-velocity", type=int, default=40)
     parser.add_argument("--max-velocity", type=int, default=40)
     parser.add_argument("--first-acceleration", type=int, default=120)
