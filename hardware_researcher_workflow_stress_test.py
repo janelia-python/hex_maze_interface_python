@@ -128,6 +128,16 @@ def _state_snapshot(hmi: HexMazeInterface, cluster_address: int) -> dict[str, ob
     }
 
 
+def _best_effort_state_snapshot(
+    hmi: HexMazeInterface,
+    cluster_address: int,
+) -> dict[str, object]:
+    try:
+        return _state_snapshot(hmi, cluster_address)
+    except MazeException as exc:
+        return {"cluster_address": cluster_address, "error": str(exc)}
+
+
 def _verify_clean_terminal_state(snapshot: dict[str, object], context: str) -> None:
     if not snapshot["communicating"]:
         raise MazeException(f"{context}: cluster is not communicating")
@@ -340,6 +350,7 @@ def _home_repeated(
     timeout_s: float,
     poll_interval_s: float,
     stall_plausibility_tolerance_mm: int,
+    log: TextIO | None,
     *,
     validate_stall: bool,
     context: str,
@@ -347,26 +358,86 @@ def _home_repeated(
     reports: list[dict[str, object]] = []
     for index in range(repeat_count):
         before_positions = tuple(hmi.read_positions_cluster(cluster_address))
+        _write_event(
+            log,
+            {
+                "event": "home_start",
+                "context": context,
+                "index": index,
+                "cluster_address": cluster_address,
+                "before_positions_mm": list(before_positions),
+                "home_parameters": asdict(SAFE_HOME_PARAMETERS),
+                "validate_stall": validate_stall,
+            },
+        )
         if not hmi.home_cluster(cluster_address, SAFE_HOME_PARAMETERS):
+            _write_event(
+                log,
+                {
+                    "event": "home_start_failed",
+                    "context": context,
+                    "index": index,
+                    "cluster_address": cluster_address,
+                    "state": _best_effort_state_snapshot(hmi, cluster_address),
+                },
+            )
             raise MazeException(f"{context}: home {index} failed to start")
-        report = _wait_for_home(hmi, cluster_address, timeout_s, poll_interval_s)
+        try:
+            report = _wait_for_home(hmi, cluster_address, timeout_s, poll_interval_s)
+        except MazeException as exc:
+            _write_event(
+                log,
+                {
+                    "event": "home_failure",
+                    "context": context,
+                    "index": index,
+                    "cluster_address": cluster_address,
+                    "error": str(exc),
+                    "state": _best_effort_state_snapshot(hmi, cluster_address),
+                },
+            )
+            raise
         diagnostics = _diagnostics_snapshot(hmi, cluster_address)
         if validate_stall:
-            _raise_on_implausible_stall(
-                report,
-                before_positions,
-                diagnostics,
-                tuple(range(HexMazeInterface.PRISM_COUNT)),
-                stall_plausibility_tolerance_mm,
-                f"{context} home {index}",
-            )
-        reports.append(
+            try:
+                _raise_on_implausible_stall(
+                    report,
+                    before_positions,
+                    diagnostics,
+                    tuple(range(HexMazeInterface.PRISM_COUNT)),
+                    stall_plausibility_tolerance_mm,
+                    f"{context} home {index}",
+                )
+            except MazeException as exc:
+                _write_event(
+                    log,
+                    {
+                        "event": "home_failure",
+                        "context": context,
+                        "index": index,
+                        "cluster_address": cluster_address,
+                        "error": str(exc),
+                        "home": report,
+                        "diagnostics": diagnostics,
+                        "state": _best_effort_state_snapshot(hmi, cluster_address),
+                    },
+                )
+                raise
+        pass_report = {
+            "index": index,
+            "before_positions_mm": list(before_positions),
+            "home": report,
+            "diagnostics": diagnostics,
+        }
+        reports.append(pass_report)
+        _write_event(
+            log,
             {
-                "index": index,
-                "before_positions_mm": list(before_positions),
-                "home": report,
-                "diagnostics": diagnostics,
-            }
+                "event": "home_complete",
+                "context": context,
+                "cluster_address": cluster_address,
+                "result": pass_report,
+            },
         )
     return reports
 
@@ -379,6 +450,14 @@ def _startup_unknown_sequence(
     log: TextIO | None,
 ) -> dict[str, object]:
     stage_targets = _random_targets(rng, args.random_low, args.random_high)
+    _write_event(
+        log,
+        {
+            "event": "startup_stage_targets",
+            "cluster_address": cluster_address,
+            "targets_mm": list(stage_targets),
+        },
+    )
     if not hmi.write_targets_cluster(cluster_address, stage_targets):
         raise MazeException("startup staging write_targets_cluster failed")
     staged = _wait_for_positions(
@@ -389,12 +468,30 @@ def _startup_unknown_sequence(
         args.poll_interval,
         args.position_tolerance,
     )
+    _write_event(
+        log,
+        {
+            "event": "startup_stage_complete",
+            "cluster_address": cluster_address,
+            "result": staged,
+        },
+    )
     if not hmi.power_off_cluster(cluster_address):
         raise MazeException("startup power_off_cluster failed")
+    _write_event(log, {"event": "startup_power_off", "cluster_address": cluster_address})
     if not hmi.power_on_cluster(cluster_address):
         raise MazeException("startup power_on_cluster failed")
+    _write_event(log, {"event": "startup_power_on", "cluster_address": cluster_address})
     _write_controller_parameters(hmi, cluster_address)
     before_home = _state_snapshot(hmi, cluster_address)
+    _write_event(
+        log,
+        {
+            "event": "startup_before_repeated_home",
+            "cluster_address": cluster_address,
+            "state": before_home,
+        },
+    )
     home_reports = _home_repeated(
         hmi,
         cluster_address,
@@ -402,10 +499,19 @@ def _startup_unknown_sequence(
         args.home_timeout,
         args.poll_interval,
         args.stall_plausibility_tolerance,
+        log,
         validate_stall=False,
         context="startup unknown",
     )
     after_repeated_home = _state_snapshot(hmi, cluster_address)
+    _write_event(
+        log,
+        {
+            "event": "startup_after_repeated_home",
+            "cluster_address": cluster_address,
+            "state": after_repeated_home,
+        },
+    )
     confirm_result = None
     after_confirm = None
     if not args.no_confirm_after_startup_home:
@@ -524,10 +630,11 @@ def _run_cycle(
     cycle_index: int,
     log: TextIO | None,
 ) -> dict[str, object]:
-    moves = [
-        _run_double_move(hmi, cluster_address, rng, args, cycle_index, move_index)
-        for move_index in range(args.double_moves_per_cycle)
-    ]
+    moves: list[dict[str, object]] = []
+    for move_index in range(args.double_moves_per_cycle):
+        move = _run_double_move(hmi, cluster_address, rng, args, cycle_index, move_index)
+        moves.append(move)
+        _write_event(log, {"event": "cycle_move_success", "result": move})
     rehome = None
     post_rehome_move = None
     if (
@@ -541,6 +648,7 @@ def _run_cycle(
             args.home_timeout,
             args.poll_interval,
             args.stall_plausibility_tolerance,
+            log,
             validate_stall=True,
             context=f"cycle {cycle_index} midday rehome",
         )
@@ -670,6 +778,9 @@ def main() -> int:
                 "finished_at": datetime.now().isoformat(timespec="seconds"),
             }
         )
+        if log_file is not None:
+            with log_file.open("a", encoding="utf-8") as log:
+                _write_event(log, {"event": "run_failure", **result})
         print(json.dumps(result, default=_json_default, indent=2, sort_keys=True))
         return 1
 

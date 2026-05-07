@@ -738,6 +738,9 @@ class HexMazeInterface:
                 return report
 
             report["checks"]["homed"] = list(self.homed_cluster(cluster_address))
+            report["checks"]["home_outcomes"] = [
+                outcome.name for outcome in self.read_home_outcomes_cluster(cluster_address)
+            ]
             report["checks"]["positions_mm"] = list(self.read_positions_cluster(cluster_address))
             report["checks"]["run_current_percent"] = self.read_run_current_cluster(cluster_address)
             report["checks"]["controller_parameters"] = asdict(

@@ -69,6 +69,7 @@ def test_verify_cluster_collects_non_destructive_status() -> None:
 
     hmi.communicating_cluster = lambda cluster_address: True
     hmi.homed_cluster = lambda cluster_address: (1, 1, 1, 1, 1, 1, 1)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.CONFIRMED,) * 7
     hmi.read_positions_cluster = lambda cluster_address: (10, 20, 30, 40, 50, 60, 70)
     hmi.read_run_current_cluster = lambda cluster_address: 80
     hmi.read_controller_parameters_cluster = lambda cluster_address: ControllerParameters()
@@ -80,6 +81,7 @@ def test_verify_cluster_collects_non_destructive_status() -> None:
 
     assert report["ok"] is True
     assert report["cluster_address"] == 10
+    assert report["checks"]["home_outcomes"] == ["CONFIRMED"] * 7
     assert report["checks"]["positions_mm"] == [10, 20, 30, 40, 50, 60, 70]
     assert report["checks"]["run_current_percent"] == 80
     assert report["checks"]["controller_parameters"]["max_velocity"] == 40

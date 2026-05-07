@@ -32,7 +32,7 @@ def _parse_args() -> argparse.Namespace:
         default=100,
         help="Researcher-supervised incremental home travel.",
     )
-    parser.add_argument("--home-max-velocity", type=int, default=6)
+    parser.add_argument("--home-max-velocity", type=int, default=10)
     parser.add_argument("--home-run-current", type=int, default=43)
     parser.add_argument("--home-stall-threshold", type=int, default=0)
     parser.add_argument("--position-timeout", type=float, default=20.0)
@@ -99,10 +99,16 @@ def _wait_for_home(
             "positions_mm": tuple(hmi.read_positions_cluster(cluster_address)),
         }
         if all(outcome != HomeOutcome.IN_PROGRESS for outcome in last["outcomes"]):
+            time.sleep(poll_interval_s)
+            settled = {
+                "homed": tuple(bool(value) for value in hmi.homed_cluster(cluster_address)),
+                "outcomes": tuple(hmi.read_home_outcomes_cluster(cluster_address)),
+                "positions_mm": tuple(hmi.read_positions_cluster(cluster_address)),
+            }
             return {
-                "homed": list(last["homed"]),
-                "outcomes": [outcome.name for outcome in last["outcomes"]],
-                "positions_mm": list(last["positions_mm"]),
+                "homed": list(settled["homed"]),
+                "outcomes": [outcome.name for outcome in settled["outcomes"]],
+                "positions_mm": list(settled["positions_mm"]),
             }
         if any(outcome == HomeOutcome.FAILED for outcome in last["outcomes"]):
             raise MazeException(
