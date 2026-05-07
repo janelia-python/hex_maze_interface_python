@@ -38,6 +38,40 @@ def test_verify_cluster_json(monkeypatch) -> None:
     assert json.loads(result.output)["ok"] is True
 
 
+def test_verify_cluster_json_exits_nonzero_on_failure(monkeypatch) -> None:
+    monkeypatch.setattr(
+        HexMazeInterface,
+        "verify_cluster",
+        lambda self, cluster_address: {
+            "cluster_address": cluster_address,
+            "ok": False,
+            "checks": {"communicating": False},
+            "error": "communication check failed",
+        },
+    )
+
+    result = CliRunner().invoke(cli, ["verify-cluster", "10", "--json"])
+
+    assert result.exit_code == 1
+    assert json.loads(result.output)["ok"] is False
+
+
+def test_verify_all_clusters_json_exits_nonzero_on_any_failure(monkeypatch) -> None:
+    monkeypatch.setattr(
+        HexMazeInterface,
+        "verify_all_clusters",
+        lambda self: [
+            {"cluster_address": 10, "ok": True, "checks": {"communicating": True}},
+            {"cluster_address": 11, "ok": False, "checks": {"communicating": False}},
+        ],
+    )
+
+    result = CliRunner().invoke(cli, ["verify-all-clusters", "--json"])
+
+    assert result.exit_code == 1
+    assert json.loads(result.output)[1]["ok"] is False
+
+
 def test_global_timeout_option_is_accepted(monkeypatch) -> None:
     monkeypatch.setattr(
         HexMazeInterface, "communicating_cluster", lambda self, cluster_address: True

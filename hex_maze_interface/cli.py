@@ -24,6 +24,20 @@ def _emit(value: Any, *, as_json: bool) -> None:
         click.echo(value)
 
 
+def _verify_ok(value: Any) -> bool:
+    if isinstance(value, dict):
+        return bool(value.get("ok", False))
+    if isinstance(value, list):
+        return all(_verify_ok(item) for item in value)
+    return False
+
+
+def _emit_verify(value: Any, *, as_json: bool) -> None:
+    _emit(value, as_json=as_json)
+    if not _verify_ok(value):
+        raise click.exceptions.Exit(1)
+
+
 def _home_parameters(
     travel_limit: int,
     max_velocity: int,
@@ -631,11 +645,11 @@ def write_double_targets_cluster(
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
 @pass_hex_maze_interface
 def verify_cluster(hmi: HexMazeInterface, cluster_address: int, as_json: bool) -> None:
-    _emit(hmi.verify_cluster(cluster_address), as_json=as_json)
+    _emit_verify(hmi.verify_cluster(cluster_address), as_json=as_json)
 
 
 @cli.command()
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
 @pass_hex_maze_interface
 def verify_all_clusters(hmi: HexMazeInterface, as_json: bool) -> None:
-    _emit(hmi.verify_all_clusters(), as_json=as_json)
+    _emit_verify(hmi.verify_all_clusters(), as_json=as_json)

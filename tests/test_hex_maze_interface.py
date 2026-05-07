@@ -88,6 +88,43 @@ def test_verify_cluster_collects_non_destructive_status() -> None:
     assert report["checks"]["prism_diagnostics"][0]["communicating"] is True
 
 
+def test_verify_cluster_fails_on_noncommunicating_prism_diagnostics() -> None:
+    hmi = HexMazeInterface()
+
+    hmi.communicating_cluster = lambda cluster_address: True
+    hmi.homed_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.NONE,) * 7
+    hmi.read_positions_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_run_current_cluster = lambda cluster_address: 75
+    hmi.read_controller_parameters_cluster = lambda cluster_address: ControllerParameters()
+    hmi.read_prism_diagnostics_cluster = lambda cluster_address: (
+        (PrismDiagnostics.from_wire(0x00, 0x00, 0, 0, 0),) * HexMazeInterface.PRISM_COUNT
+    )
+
+    report = hmi.verify_cluster(10)
+
+    assert report["ok"] is False
+    assert report["checks"]["noncommunicating_prisms"] == [0, 1, 2, 3, 4, 5, 6]
+    assert report["error"] == "prism diagnostics show non-communicating prism(s)"
+
+
+def test_verify_cluster_fails_on_out_of_range_positions() -> None:
+    hmi = HexMazeInterface()
+
+    hmi.communicating_cluster = lambda cluster_address: True
+    hmi.homed_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.TARGET_REACHED,) * 7
+    hmi.read_positions_cluster = lambda cluster_address: (-100, 0, 0, 0, 0, 0, 0)
+
+    report = hmi.verify_cluster(10)
+
+    assert report["ok"] is False
+    assert report["checks"]["out_of_range_positions"] == [
+        {"prism": 0, "position_mm": -100}
+    ]
+    assert report["error"] == "position check failed"
+
+
 def test_read_prism_diagnostics_cluster_decodes_fault_flags() -> None:
     hmi = HexMazeInterface()
     hmi._send_cluster_cmd_receive_rsp_params = lambda *args, **kwargs: (

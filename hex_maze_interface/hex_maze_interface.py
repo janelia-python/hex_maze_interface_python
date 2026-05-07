@@ -176,6 +176,8 @@ class HexMazeInterface:
     CLUSTER_ADDRESSES = tuple(range(CLUSTER_ADDRESS_MIN, CLUSTER_ADDRESS_MAX))
     CLUSTER_COUNT = len(CLUSTER_ADDRESSES)
     PRISM_COUNT = 7
+    POSITION_MIN_MM = 0
+    POSITION_MAX_MM = 550
     PROTOCOL_VERSION_INDEX = 0
     LENGTH_INDEX = 1
     COMMAND_NUMBER_INDEX = 2
@@ -741,18 +743,48 @@ class HexMazeInterface:
             report["checks"]["home_outcomes"] = [
                 outcome.name for outcome in self.read_home_outcomes_cluster(cluster_address)
             ]
-            report["checks"]["positions_mm"] = list(self.read_positions_cluster(cluster_address))
+            positions_mm = list(self.read_positions_cluster(cluster_address))
+            report["checks"]["positions_mm"] = positions_mm
+            out_of_range_positions = [
+                {"prism": prism_index, "position_mm": position_mm}
+                for prism_index, position_mm in enumerate(positions_mm)
+                if position_mm < self.POSITION_MIN_MM or position_mm > self.POSITION_MAX_MM
+            ]
+            if out_of_range_positions:
+                report["checks"]["out_of_range_positions"] = out_of_range_positions
+                report["error"] = "position check failed"
+                return report
             report["checks"]["run_current_percent"] = self.read_run_current_cluster(cluster_address)
             report["checks"]["controller_parameters"] = asdict(
                 self.read_controller_parameters_cluster(cluster_address)
             )
             try:
-                report["checks"]["prism_diagnostics"] = [
-                    asdict(diagnostics)
-                    for diagnostics in self.read_prism_diagnostics_cluster(cluster_address)
-                ]
+                diagnostics = self.read_prism_diagnostics_cluster(cluster_address)
             except MazeException as exc:
                 report["checks"]["prism_diagnostics_error"] = str(exc)
+                report["error"] = "prism diagnostics check failed"
+                return report
+            report["checks"]["prism_diagnostics"] = [
+                asdict(diagnostic) for diagnostic in diagnostics
+            ]
+            noncommunicating_prisms = [
+                prism_index
+                for prism_index, diagnostic in enumerate(diagnostics)
+                if not diagnostic.communicating
+            ]
+            if noncommunicating_prisms:
+                report["checks"]["noncommunicating_prisms"] = noncommunicating_prisms
+                report["error"] = "prism diagnostics show non-communicating prism(s)"
+                return report
+            faulted_prisms = [
+                prism_index
+                for prism_index, diagnostic in enumerate(diagnostics)
+                if diagnostic.has_fault()
+            ]
+            if faulted_prisms:
+                report["checks"]["faulted_prisms"] = faulted_prisms
+                report["error"] = "prism diagnostics show latched fault(s)"
+                return report
             report["ok"] = True
             return report
         except MazeException as exc:
