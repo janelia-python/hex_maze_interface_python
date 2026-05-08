@@ -65,7 +65,7 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.pixi.workspace]
 name = "hex-maze-interface-python"
-version = "4.3.1"
+version = "4.3.2"
 description = "Python interface and verification tooling for the Voigts lab hex maze."
 authors = ["Peter Polidoro <peter@polidoro.io>"]
 channels = ["conda-forge"]

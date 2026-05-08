@@ -16,9 +16,9 @@
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 4.3.1
+- Version: 4.3.2
 - Python Version: 3.11
-- Release Date: 2026-05-06
+- Release Date: 2026-05-08
 - Creation Date: 2024-01-14
 - License: BSD-3-Clause
 - URL: https://github.com/janelia-python/hex_maze_interface_python

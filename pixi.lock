@@ -953,8 +953,8 @@ packages:
   timestamp: 1770982612399
 - pypi: ./
   name: hex-maze-interface
-  version: 4.3.1
-  sha256: e1783783a69dc19b6fc5489a7fbc203a317076487bbd3b5feb25d6ed08959d5a
+  version: 4.3.2
+  sha256: 5bc3191d25c42108fc8057145528855a129f5ee8057d7440f5943cf1c09fc823
   requires_dist:
   - click>=8.1
   - python3-nmap>=1.9
