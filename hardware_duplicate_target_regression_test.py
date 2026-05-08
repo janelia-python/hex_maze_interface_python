@@ -15,6 +15,7 @@ from typing import TextIO
 from hex_maze_interface import ControllerParameters, HexMazeInterface, HomeOutcome, MazeException
 
 SAFE_START_STOP_MAX_MM_S = 10
+SAFE_STOP_MIN_MM_S = 10
 
 
 def _default_log_file() -> Path:
@@ -60,7 +61,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--allow-aggressive-motion-settings",
         action="store_true",
-        help="Allow requested start/stop velocity above the current safe limit of 10 mm/s.",
+        help=(
+            "Allow requested start/stop velocity outside the safe ramp profile "
+            "for supervised reproductions."
+        ),
     )
     parser.add_argument(
         "--allow-clamped-controller-readback",
@@ -70,7 +74,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--require-safe-start-stop-readback",
         action="store_true",
-        help="Fail unless controller readback has start/stop velocity <= 10 mm/s.",
+        help=(
+            "Fail unless controller readback has start <= 10 mm/s, "
+            "stop == 10 mm/s, and stop >= start."
+        ),
     )
     parser.add_argument("--target-base", type=int, default=40)
     parser.add_argument("--target-step", type=int, default=5)
@@ -225,6 +232,8 @@ def _write_controller_parameters(
     if args.require_safe_start_stop_readback and (
         after.start_velocity > SAFE_START_STOP_MAX_MM_S
         or after.stop_velocity > SAFE_START_STOP_MAX_MM_S
+        or after.stop_velocity < SAFE_STOP_MIN_MM_S
+        or after.stop_velocity < after.start_velocity
     ):
         raise MazeException(
             f"cluster {cluster_address} accepted unsafe start/stop readback: "
@@ -405,17 +414,21 @@ def _print_record(record: dict[str, object], compact: bool) -> None:
 def main() -> int:
     args = _parse_args()
     requested_controller = _controller_parameters_from_args(args)
+    requested_unsafe_ramp_profile = (
+        requested_controller.start_velocity > SAFE_START_STOP_MAX_MM_S
+        or requested_controller.stop_velocity > SAFE_START_STOP_MAX_MM_S
+        or requested_controller.stop_velocity < SAFE_STOP_MIN_MM_S
+        or requested_controller.stop_velocity < requested_controller.start_velocity
+    )
     if (
         not args.read_only
         and not args.allow_aggressive_motion_settings
-        and (
-            requested_controller.start_velocity > SAFE_START_STOP_MAX_MM_S
-            or requested_controller.stop_velocity > SAFE_START_STOP_MAX_MM_S
-        )
+        and requested_unsafe_ramp_profile
     ):
         raise MazeException(
-            "requested start/stop velocity exceeds 10 mm/s; rerun with "
-            "--allow-aggressive-motion-settings for the supervised 20/20 reproduction"
+            "requested start/stop velocity is outside the safe ramp profile "
+            "(start <= 10 mm/s, stop == 10 mm/s, stop >= start); rerun with "
+            "--allow-aggressive-motion-settings for a supervised reproduction"
         )
 
     HexMazeInterface.PROTOCOL_VERSION = args.protocol_version

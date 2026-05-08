@@ -1179,6 +1179,28 @@ def _validate_args(args: argparse.Namespace) -> None:
             "aggressive motion settings require --allow-aggressive-motion-settings: "
             f"{formatted_options}"
         )
+    unsafe_ramp_profiles = []
+    if args.stop_velocity < SAFE_STOP_VELOCITY:
+        unsafe_ramp_profiles.append(f"--stop-velocity={args.stop_velocity}")
+    if args.stop_velocity < args.start_velocity:
+        unsafe_ramp_profiles.append(
+            f"--stop-velocity={args.stop_velocity} < --start-velocity={args.start_velocity}"
+        )
+    if args.recovery_stop_velocity < SAFE_STOP_VELOCITY:
+        unsafe_ramp_profiles.append(
+            f"--recovery-stop-velocity={args.recovery_stop_velocity}"
+        )
+    if args.recovery_stop_velocity < args.recovery_start_velocity:
+        unsafe_ramp_profiles.append(
+            "--recovery-stop-velocity="
+            f"{args.recovery_stop_velocity} < "
+            f"--recovery-start-velocity={args.recovery_start_velocity}"
+        )
+    if unsafe_ramp_profiles and not args.allow_aggressive_motion_settings:
+        raise MazeException(
+            "unsafe ramp profiles require --allow-aggressive-motion-settings: "
+            + ", ".join(unsafe_ramp_profiles)
+        )
     int8_options = ("initial_home_stall_threshold", "home_stall_threshold")
     for option_name in int8_options:
         option_value = getattr(args, option_name)

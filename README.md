@@ -170,9 +170,10 @@ Notes:
   them and before reporting controller/current readback:
   ordinary home travel `1..100 mm`, recovery home travel `1..550 mm`, home
   velocity `4..12 mm/s`, home current `35..50%`, StallGuard threshold `-10..0`,
-  normal current `40..75%`, normal start/stop velocity `1..10 mm/s`, normal
-  first/max velocity up to `40 mm/s`, normal acceleration/deceleration within
-  the current `20..120`/`20..80 mm/s/s` profile, and normal targets `0..550 mm`.
+  normal current `40..75%`, normal start velocity `1..10 mm/s`, normal stop
+  velocity `10 mm/s` with `stop_velocity >= start_velocity`, normal first/max
+  velocity up to `40 mm/s`, normal acceleration/deceleration within the current
+  `20..120`/`20..80 mm/s/s` profile, and normal targets `0..550 mm`.
 
 
 ## Python
