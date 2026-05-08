@@ -737,10 +737,10 @@ class HexMazeInterface:
                 report["error"] = "communication check failed"
                 return report
 
-            report["checks"]["homed"] = list(self.homed_cluster(cluster_address))
-            report["checks"]["home_outcomes"] = [
-                outcome.name for outcome in self.read_home_outcomes_cluster(cluster_address)
-            ]
+            homed = list(self.homed_cluster(cluster_address))
+            report["checks"]["homed"] = homed
+            home_outcomes = list(self.read_home_outcomes_cluster(cluster_address))
+            report["checks"]["home_outcomes"] = [outcome.name for outcome in home_outcomes]
             positions_mm = list(self.read_positions_cluster(cluster_address))
             report["checks"]["positions_mm"] = positions_mm
             out_of_range_positions = [
@@ -782,6 +782,22 @@ class HexMazeInterface:
             if faulted_prisms:
                 report["checks"]["faulted_prisms"] = faulted_prisms
                 report["error"] = "prism diagnostics show latched fault(s)"
+                return report
+            unhomed_prisms = [
+                prism_index for prism_index, homed_value in enumerate(homed) if not homed_value
+            ]
+            if unhomed_prisms:
+                report["checks"]["unhomed_prisms"] = unhomed_prisms
+                report["error"] = "cluster reports unhomed prism(s)"
+                return report
+            untrusted_home_prisms = [
+                prism_index
+                for prism_index, outcome in enumerate(home_outcomes)
+                if outcome == HomeOutcome.TARGET_REACHED
+            ]
+            if untrusted_home_prisms:
+                report["checks"]["untrusted_home_prisms"] = untrusted_home_prisms
+                report["error"] = "homed state was produced by target-reached fallback"
                 return report
             report["ok"] = True
             return report

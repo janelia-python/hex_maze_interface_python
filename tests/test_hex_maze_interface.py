@@ -108,6 +108,46 @@ def test_verify_cluster_fails_on_noncommunicating_prism_diagnostics() -> None:
     assert report["error"] == "prism diagnostics show non-communicating prism(s)"
 
 
+def test_verify_cluster_fails_on_unhomed_prisms() -> None:
+    hmi = HexMazeInterface()
+
+    hmi.communicating_cluster = lambda cluster_address: True
+    hmi.homed_cluster = lambda cluster_address: (1, 0, 1, 1, 1, 1, 1)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.NONE,) * 7
+    hmi.read_positions_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_run_current_cluster = lambda cluster_address: 75
+    hmi.read_controller_parameters_cluster = lambda cluster_address: ControllerParameters()
+    hmi.read_prism_diagnostics_cluster = lambda cluster_address: (
+        (PrismDiagnostics.from_wire(0x01, 0x00, 0, 0, 0),) * HexMazeInterface.PRISM_COUNT
+    )
+
+    report = hmi.verify_cluster(10)
+
+    assert report["ok"] is False
+    assert report["checks"]["unhomed_prisms"] == [1]
+    assert report["error"] == "cluster reports unhomed prism(s)"
+
+
+def test_verify_cluster_rejects_target_reached_home_as_untrusted() -> None:
+    hmi = HexMazeInterface()
+
+    hmi.communicating_cluster = lambda cluster_address: True
+    hmi.homed_cluster = lambda cluster_address: (1, 1, 1, 1, 1, 1, 1)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.TARGET_REACHED,) * 7
+    hmi.read_positions_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_run_current_cluster = lambda cluster_address: 75
+    hmi.read_controller_parameters_cluster = lambda cluster_address: ControllerParameters()
+    hmi.read_prism_diagnostics_cluster = lambda cluster_address: (
+        (PrismDiagnostics.from_wire(0x01, 0x00, 0, 0, 0),) * HexMazeInterface.PRISM_COUNT
+    )
+
+    report = hmi.verify_cluster(10)
+
+    assert report["ok"] is False
+    assert report["checks"]["untrusted_home_prisms"] == [0, 1, 2, 3, 4, 5, 6]
+    assert report["error"] == "homed state was produced by target-reached fallback"
+
+
 def test_verify_cluster_fails_on_out_of_range_positions() -> None:
     hmi = HexMazeInterface()
 
