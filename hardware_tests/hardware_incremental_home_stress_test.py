@@ -48,7 +48,7 @@ INT8_MAX = 127
 
 
 def _default_log_file() -> Path:
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[3]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return repo_root / "logs" / f"incremental_home_stress_{timestamp}.jsonl"
 

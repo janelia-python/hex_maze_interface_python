@@ -16,7 +16,7 @@
 ```markdown
 - Python Package Name: hex_maze_interface
 - Description: Python interface to the Voigts lab hex maze.
-- Version: 4.3.0
+- Version: 4.3.1
 - Python Version: 3.11
 - Release Date: 2026-05-06
 - Creation Date: 2024-01-14
@@ -160,7 +160,8 @@ Notes:
   and current. Bench testing showed StallGuard may still miss the hard-stop
   event at this speed, so this profile relies on bounded travel plus operator
   supervision, not on StallGuard as a required success signal.
-- `hardware_home_noise_sweep.py` records relative laptop-microphone `dBFS`
+- Hardware-facing debug and regression runners live in `hardware_tests/`.
+  `hardware_tests/hardware_home_noise_sweep.py` records relative laptop-microphone `dBFS`
   measurements alongside home outcomes and diagnostics for homing profile
   comparisons.
 - If a researcher has visually confirmed all prisms are already on the hard

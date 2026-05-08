@@ -15,7 +15,7 @@ from hex_maze_interface import HexMazeInterface, MazeException
 
 
 def _default_log_file() -> Path:
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[3]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return repo_root / "logs" / f"driver_status_move_probe_{timestamp}.jsonl"
 

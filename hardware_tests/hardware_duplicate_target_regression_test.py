@@ -19,7 +19,7 @@ SAFE_STOP_MIN_MM_S = 10
 
 
 def _default_log_file() -> Path:
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[3]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return repo_root / "logs" / f"duplicate_target_regression_{timestamp}.jsonl"
 
