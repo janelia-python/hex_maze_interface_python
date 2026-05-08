@@ -24,8 +24,8 @@ from hex_maze_interface import (
 SAFE_CONTROLLER_PARAMETERS = ControllerParameters(
     start_velocity=10,
     stop_velocity=10,
-    first_velocity=40,
-    max_velocity=40,
+    first_velocity=50,
+    max_velocity=50,
     first_acceleration=120,
     max_acceleration=80,
     max_deceleration=80,
