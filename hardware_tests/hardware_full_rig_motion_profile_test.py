@@ -81,7 +81,8 @@ def _positions_match(
     tolerance_mm: int,
 ) -> bool:
     return all(
-        abs(position - target) <= tolerance_mm for position, target in zip(positions, targets)
+        abs(position - target) <= tolerance_mm
+        for position, target in zip(positions, targets, strict=True)
     )
 
 
