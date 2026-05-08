@@ -144,8 +144,6 @@ class PrismDiagnostics:
             or self.over_temperature_shutdown
             or self.short_to_ground_a
             or self.short_to_ground_b
-            or self.open_load_a
-            or self.open_load_b
         )
 
 

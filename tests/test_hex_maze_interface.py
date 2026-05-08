@@ -153,6 +153,27 @@ def test_read_prism_diagnostics_cluster_decodes_fault_flags() -> None:
     assert diagnostics[1].has_fault() is False
 
 
+def test_open_load_diagnostics_are_advisory_for_verify() -> None:
+    hmi = HexMazeInterface()
+
+    hmi.communicating_cluster = lambda cluster_address: True
+    hmi.homed_cluster = lambda cluster_address: (1, 1, 1, 1, 1, 1, 1)
+    hmi.read_home_outcomes_cluster = lambda cluster_address: (HomeOutcome.STALL,) * 7
+    hmi.read_positions_cluster = lambda cluster_address: (0, 0, 0, 0, 0, 0, 0)
+    hmi.read_run_current_cluster = lambda cluster_address: 75
+    hmi.read_controller_parameters_cluster = lambda cluster_address: ControllerParameters()
+    hmi.read_prism_diagnostics_cluster = lambda cluster_address: (
+        (PrismDiagnostics.from_wire(0x01, 0b01100000, 0, 0, 0),)
+        * HexMazeInterface.PRISM_COUNT
+    )
+
+    report = hmi.verify_cluster(10)
+
+    assert report["ok"] is True
+    assert report["checks"]["prism_diagnostics"][0]["open_load_a"] is True
+    assert report["checks"]["prism_diagnostics"][0]["open_load_b"] is True
+
+
 def test_recovery_home_prism_uses_recovery_command() -> None:
     hmi = HexMazeInterface()
     calls = []
