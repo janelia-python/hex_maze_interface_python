@@ -456,6 +456,9 @@ class HexMazeInterface:
     def reset_all_clusters(self) -> list[bool]:
         return [self.reset_cluster(cluster_address) for cluster_address in self.CLUSTER_ADDRESSES]
 
+    def reboot_bootloader_cluster(self, cluster_address: int) -> bool:
+        return self._bool_command(cluster_address, "<BBB", 3, 0x20)
+
     def beep_cluster(self, cluster_address: int, duration_ms: int) -> bool:
         ok = self._bool_command(cluster_address, "<BBBH", 5, 0x04, int(duration_ms))
         if ok:

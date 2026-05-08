@@ -276,6 +276,7 @@ Commands:
   recovery-home-all-clusters
   recovery-home-cluster
   recovery-home-prism
+  reboot-bootloader-cluster
   reset-all-clusters
   reset-cluster
   resume-all-clusters
@@ -297,6 +298,7 @@ Commands:
 CLUSTER_ADDRESS=10
 maze communicating-cluster $CLUSTER_ADDRESS
 maze reset-cluster $CLUSTER_ADDRESS
+maze reboot-bootloader-cluster $CLUSTER_ADDRESS
 DURATION_MS=100
 maze beep-cluster $CLUSTER_ADDRESS $DURATION_MS
 maze power-on-cluster $CLUSTER_ADDRESS

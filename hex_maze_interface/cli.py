@@ -125,6 +125,13 @@ def reset_all_clusters(hmi: HexMazeInterface) -> None:
 
 @cli.command()
 @click.argument("cluster-address", type=int)
+@pass_hex_maze_interface
+def reboot_bootloader_cluster(hmi: HexMazeInterface, cluster_address: int) -> None:
+    _emit(hmi.reboot_bootloader_cluster(cluster_address), as_json=False)
+
+
+@cli.command()
+@click.argument("cluster-address", type=int)
 @click.argument("duration-ms", type=int)
 @pass_hex_maze_interface
 def beep_cluster(hmi: HexMazeInterface, cluster_address: int, duration_ms: int) -> None:

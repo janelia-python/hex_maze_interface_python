@@ -258,6 +258,17 @@ def test_confirm_home_cluster_uses_confirm_command() -> None:
     assert calls == [((10, "<BBB", 3, 0x1F), {})]
 
 
+def test_reboot_bootloader_cluster_uses_bootloader_command() -> None:
+    hmi = HexMazeInterface()
+    calls = []
+    hmi._bool_command = lambda *args, **kwargs: calls.append((args, kwargs)) or True
+
+    ok = hmi.reboot_bootloader_cluster(10)
+
+    assert ok is True
+    assert calls == [((10, "<BBB", 3, 0x20), {})]
+
+
 def test_home_parameters_string_format() -> None:
     params = HomeParameters()
 
