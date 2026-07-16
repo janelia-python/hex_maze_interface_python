@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hex Maze Cluster Control</title>
+    <link rel="stylesheet" href="/static/cluster-control.css">
+  </head>
+  <body>
+    <main>
+      <h1>Hex Maze Cluster Control</h1>
+      <p class="intro">Controls one seven-prism cluster over its Ethernet connection.</p>
+
+      <section aria-labelledby="connection-heading">
+        <h2 id="connection-heading">Connection</h2>
+        <label for="cluster-address">Cluster address</label>
+        <input id="cluster-address" type="number" min="10" max="16" value="10" inputmode="numeric">
+        <button id="connect">Connect</button>
+        <p class="hint">Connects to <code>192.168.10.&lt;cluster address&gt;:7777</code>.</p>
+      </section>
+
+      <section aria-labelledby="velocity-heading">
+        <h2 id="velocity-heading">Shared controller setting</h2>
+        <label for="max-velocity">Maximum velocity (mm/s)</label>
+        <input id="max-velocity" type="number" min="1" max="40" inputmode="numeric">
+        <button id="apply-velocity" disabled>Apply velocity</button>
+        <p class="hint">The current firmware uses one controller profile for all seven prisms.</p>
+      </section>
+
+      <section aria-labelledby="targets-heading">
+        <h2 id="targets-heading">Prism targets</h2>
+        <table>
+          <thead>
+            <tr><th>Prism</th><th>Target (mm)</th><th>Current (mm)</th><th>Home status</th></tr>
+          </thead>
+          <tbody id="prisms"></tbody>
+        </table>
+      </section>
+
+      <section class="actions" aria-label="Actions">
+        <button id="home" disabled>Home all</button>
+        <button id="move" disabled>Move to targets</button>
+        <button id="refresh" disabled>Refresh</button>
+        <button id="pause" disabled>Pause</button>
+        <button id="power-off" class="danger" disabled>Power off</button>
+        <button id="quit" disabled>Quit</button>
+      </section>
+
+      <p id="status" role="status">Choose a cluster address and connect.</p>
+    </main>
+    <script src="/static/cluster-control.js"></script>
+  </body>
+</html>
