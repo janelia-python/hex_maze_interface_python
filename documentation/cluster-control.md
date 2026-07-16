@@ -14,33 +14,35 @@ the seven-cluster maze.
    the internet.
 3. Select the one cluster address to operate (`10` normally means
    `192.168.10.10`), then select **Connect**.
-4. Select the shared maximum velocity, if needed. The application preserves
-   the other controller parameters and verifies the requested value by reading
-   it back from firmware.
-5. Select **Home all**. Motion remains disabled until all seven prisms report
+4. Select **Home all**. Motion remains disabled until all seven prisms report
    a successful terminal home outcome.
-6. Enter seven target positions in millimetres and select **Move to targets**.
+5. Enter seven target positions in millimetres and select **Move to targets**.
 
 **Pause** stops the selected cluster's motion. **Power off** turns off its
 prism power and requires another home before motion can be commanded. The
 browser's **Quit** button closes the local controller application.
 
-The user interface deliberately exposes only one shared maximum velocity. The
-current firmware has one controller-parameter set per cluster, not one per
-prism.
+The current rewrite firmware locks one validated controller profile for every
+prism in a cluster. The application displays its maximum velocity readback but
+does not offer a setting that firmware will reject. A firmware change is
+required before the profile can be adjusted again.
 
 ## Validated defaults and limits
 
-The operator app contains these conservative defaults:
+The operator app uses the current firmware's validated ordinary-home profile:
 
-- Home: 250 mm travel limit, 20 mm/s maximum velocity, 50% run current, and
-  stall threshold 10.
-- Maximum velocity offered to an operator: 1–40 mm/s.
+- Home: 100 mm travel limit, 10 mm/s maximum velocity, 43% run current, and
+  stall threshold 0.
 - Position input: 0–550 mm, matching the firmware clamp.
 
+Ordinary homing is fixed-travel: the browser shows its successful
+`target_reached` firmware outcome as **fixed-travel complete (homed)**. The
+firmware zeros the position on that result. A refresh is still available for
+inspection, but the application also performs a final state read after Home
+all so Current displays the zeroed position without needing a manual refresh.
+
 Mechanical safe travel can be smaller than the firmware clamp. Validate the
-fixture-specific position range and speed profile before changing these values
-in `ClusterControlSettings`.
+fixture-specific range before changing `ClusterControlSettings`.
 
 ## Pixi installation for managed computers
 

@@ -24,21 +24,23 @@ from .hex_maze_interface import (
 class ClusterControlSettings:
     """Limits and fixed homing parameters for the operator application.
 
-    The maximum velocity range is deliberately more conservative than the
-    protocol's unsigned-byte encoding.  Change these settings in code only
-    after the corresponding values have been validated on the physical rig.
+    The current rewrite firmware locks the normal motion profile to values
+    validated on the full rig.  The maximum-velocity limits remain available
+    for the programmatic helper, for firmware revisions that permit tuning,
+    but are not exposed by the operator UI.  Change the fixed home parameters
+    only after validating the corresponding values on the physical rig.
     """
 
     minimum_position_mm: int = 0
     maximum_position_mm: int = 550
-    minimum_max_velocity_mm_s: int = 1
-    maximum_max_velocity_mm_s: int = 40
+    minimum_max_velocity_mm_s: int = 10
+    maximum_max_velocity_mm_s: int = 50
     home_parameters: HomeParameters = field(
         default_factory=lambda: HomeParameters(
-            travel_limit=250,
-            max_velocity=20,
-            run_current=50,
-            stall_threshold=10,
+            travel_limit=100,
+            max_velocity=10,
+            run_current=43,
+            stall_threshold=0,
         )
     )
     home_timeout_s: float = 30.0
@@ -110,12 +112,19 @@ class ClusterControl:
     def home_succeeded(state: ClusterState) -> bool:
         """Return whether every prism reports a successful home outcome.
 
-        Firmware can transiently report a false ``homed`` flag after a stall
-        home even though its terminal outcome is successful.  The terminal
-        outcomes are therefore the authoritative signal for enabling motion.
+        Current firmware completes ordinary homing through its bounded,
+        fixed-travel target and reports ``TARGET_REACHED``.  Earlier firmware
+        may report ``STALL``, and an explicit physical confirmation reports
+        ``CONFIRMED``.  The terminal outcomes are therefore authoritative for
+        enabling motion.
         """
         return all(
-            outcome in (HomeOutcome.STALL, HomeOutcome.TARGET_REACHED)
+            outcome
+            in (
+                HomeOutcome.STALL,
+                HomeOutcome.TARGET_REACHED,
+                HomeOutcome.CONFIRMED,
+            )
             for outcome in state.home_outcomes
         )
 
@@ -145,7 +154,11 @@ class ClusterControl:
         last_state = self.read_state()
         while True:
             if self.home_succeeded(last_state):
-                return last_state
+                # Firmware zeroes positions immediately before publishing its
+                # terminal outcome.  Read once more so a position snapshot
+                # taken just before that transition is never returned to the
+                # browser as the completed-home state.
+                return self.read_state()
             if any(outcome == HomeOutcome.FAILED for outcome in last_state.home_outcomes):
                 raise MazeException(self._home_error_message(last_state))
             if self._monotonic_fn() >= deadline:

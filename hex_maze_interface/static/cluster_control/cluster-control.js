@@ -8,7 +8,6 @@ const maxVelocity = document.querySelector("#max-velocity");
 const status = document.querySelector("#status");
 const buttons = {
   connect: document.querySelector("#connect"),
-  velocity: document.querySelector("#apply-velocity"),
   home: document.querySelector("#home"),
   move: document.querySelector("#move"),
   refresh: document.querySelector("#refresh"),
@@ -39,7 +38,6 @@ for (let index = 0; index < prismCount; index += 1) {
 
 function updateButtons() {
   buttons.connect.disabled = busy;
-  buttons.velocity.disabled = !connected || busy;
   buttons.home.disabled = !connected || busy;
   buttons.refresh.disabled = !connected || busy;
   buttons.pause.disabled = !connected || busy;
@@ -55,12 +53,21 @@ function setBusy(message) {
 }
 
 function showState(state) {
-  maxVelocity.value = state.controller_parameters.max_velocity;
+  maxVelocity.textContent = state.controller_parameters.max_velocity;
   state.positions_mm.forEach((position, index) => {
     currentCells[index].textContent = position;
   });
   state.home_outcomes.forEach((outcome, index) => {
-    homeCells[index].textContent = state.homed[index] ? `${outcome} (homed)` : outcome;
+    const labels = {
+      target_reached: "fixed-travel complete",
+      confirmed: "confirmed",
+      stall: "stall",
+      in_progress: "homing",
+      failed: "failed",
+      none: "not homed",
+    };
+    const label = labels[outcome] || outcome;
+    homeCells[index].textContent = state.homed[index] ? `${label} (homed)` : label;
   });
 }
 
@@ -99,15 +106,6 @@ buttons.connect.addEventListener("click", () => run("Connecting…", async () =>
   motionReady = false;
   showState(result.state);
   status.textContent = `Connected to cluster ${cluster}. Home all before commanding motion.`;
-}));
-
-buttons.velocity.addEventListener("click", () => run("Applying maximum velocity…", async () => {
-  const result = await request("/api/max-velocity", {
-    method: "POST",
-    body: JSON.stringify({ max_velocity_mm_s: Number(maxVelocity.value) }),
-  });
-  showState(result.state);
-  status.textContent = `Maximum velocity set to ${result.state.controller_parameters.max_velocity} mm/s.`;
 }));
 
 buttons.home.addEventListener("click", () => run("Homing all prisms…", async () => {

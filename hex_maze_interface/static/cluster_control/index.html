@@ -19,12 +19,10 @@
         <p class="hint">Connects to <code>192.168.10.&lt;cluster address&gt;:7777</code>.</p>
       </section>
 
-      <section aria-labelledby="velocity-heading">
-        <h2 id="velocity-heading">Shared controller setting</h2>
-        <label for="max-velocity">Maximum velocity (mm/s)</label>
-        <input id="max-velocity" type="number" min="1" max="40" inputmode="numeric">
-        <button id="apply-velocity" disabled>Apply velocity</button>
-        <p class="hint">The current firmware uses one controller profile for all seven prisms.</p>
+      <section aria-labelledby="profile-heading">
+        <h2 id="profile-heading">Validated motion profile</h2>
+        <p>Maximum velocity: <output id="max-velocity">—</output> mm/s</p>
+        <p class="hint">The current firmware locks one validated controller profile for all seven prisms.</p>
       </section>
 
       <section aria-labelledby="targets-heading">
