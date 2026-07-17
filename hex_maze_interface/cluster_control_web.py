@@ -46,6 +46,30 @@ def _state_payload(state: ClusterState) -> dict[str, object]:
         "positions_mm": list(state.positions_mm),
         "homed": list(state.homed),
         "home_outcomes": [outcome.name.lower() for outcome in state.home_outcomes],
+        "diagnostics": [
+            {
+                "communicating": diagnostic.communicating,
+                "communication_failure_latched": diagnostic.communication_failure_latched,
+                "reset_latched": diagnostic.reset_latched,
+                "driver_error_latched": diagnostic.driver_error_latched,
+                "charge_pump_undervoltage_latched": diagnostic.charge_pump_undervoltage_latched,
+                "recovery_attempted_latched": diagnostic.recovery_attempted_latched,
+                "recovery_failed_latched": diagnostic.recovery_failed_latched,
+                "mirror_resync_required": diagnostic.mirror_resync_required,
+                "stallguard": diagnostic.stallguard,
+                "over_temperature_warning": diagnostic.over_temperature_warning,
+                "over_temperature_shutdown": diagnostic.over_temperature_shutdown,
+                "short_to_ground_a": diagnostic.short_to_ground_a,
+                "short_to_ground_b": diagnostic.short_to_ground_b,
+                "open_load_a": diagnostic.open_load_a,
+                "open_load_b": diagnostic.open_load_b,
+                "standstill": diagnostic.standstill,
+                "stall_guard_result": diagnostic.stall_guard_result,
+                "current_scale": diagnostic.current_scale,
+                "last_home_travel_mm": diagnostic.last_home_travel_mm,
+            }
+            for diagnostic in state.diagnostics or ()
+        ],
         "controller_parameters": {
             "start_velocity": state.controller_parameters.start_velocity,
             "stop_velocity": state.controller_parameters.stop_velocity,
@@ -101,6 +125,10 @@ class _ControlService:
     def read_state(self) -> ClusterState:
         with self.lock:
             return self.require_control().read_state()
+
+    def read_positions(self) -> tuple[int, ...]:
+        with self.lock:
+            return self.require_control().read_positions()
 
     def set_max_velocity(self, max_velocity_mm_s: int) -> ClusterState:
         with self.lock:
@@ -197,6 +225,10 @@ def create_app(
     @app.get("/api/state", dependencies=[fastapi.Depends(require_session)])
     async def read_state() -> dict[str, object]:
         return {"state": _state_payload(service.read_state())}
+
+    @app.get("/api/positions", dependencies=[fastapi.Depends(require_session)])
+    async def read_positions() -> dict[str, object]:
+        return {"positions_mm": list(service.read_positions())}
 
     @app.post("/api/connect", dependencies=[fastapi.Depends(require_session)])
     async def connect(payload: dict[str, object]) -> dict[str, object]:

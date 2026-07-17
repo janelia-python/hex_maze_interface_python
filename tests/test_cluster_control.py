@@ -11,6 +11,7 @@ from hex_maze_interface.hex_maze_interface import (
     ControllerParameters,
     HomeOutcome,
     MazeException,
+    PrismDiagnostics,
 )
 
 
@@ -29,6 +30,7 @@ class FakeInterface:
         self.positions = (0, 0, 0, 0, 0, 0, 0)
         self.homed = (False, False, False, False, False, False, False)
         self.outcomes = (HomeOutcome.NONE,) * 7
+        self.diagnostics = (PrismDiagnostics.from_wire(0x01, 0x80, 0, 0, 0),) * 7
         self.received_targets: tuple[int, ...] | None = None
         self.received_home_parameters = None
         self.paused = False
@@ -45,6 +47,11 @@ class FakeInterface:
 
     def read_home_outcomes_cluster(self, cluster_address: int) -> tuple[HomeOutcome, ...]:
         return self.outcomes
+
+    def read_prism_diagnostics_cluster(
+        self, cluster_address: int
+    ) -> tuple[PrismDiagnostics, ...]:
+        return self.diagnostics
 
     def read_controller_parameters_cluster(self, cluster_address: int) -> ControllerParameters:
         return self.parameters
@@ -82,6 +89,8 @@ def test_connect_reads_selected_cluster_state() -> None:
 
     assert state.positions_mm == (0,) * 7
     assert state.controller_parameters.max_velocity == 50
+    assert state.diagnostics is not None
+    assert all(diagnostic.standstill for diagnostic in state.diagnostics)
 
 
 def test_set_max_velocity_preserves_other_controller_parameters() -> None:

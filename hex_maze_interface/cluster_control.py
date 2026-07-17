@@ -17,6 +17,7 @@ from .hex_maze_interface import (
     HomeOutcome,
     HomeParameters,
     MazeException,
+    PrismDiagnostics,
 )
 
 
@@ -26,9 +27,9 @@ class ClusterControlSettings:
 
     The current rewrite firmware locks the normal motion profile to values
     validated on the full rig.  The maximum-velocity limits remain available
-    for the programmatic helper, for firmware revisions that permit tuning,
-    but are not exposed by the operator UI.  Change the fixed home parameters
-    only after validating the corresponding values on the physical rig.
+    for the programmatic helper, for firmware revisions that permit tuning.
+    Change the fixed home parameters only after validating the corresponding
+    values on the physical rig.
     """
 
     minimum_position_mm: int = 0
@@ -68,6 +69,7 @@ class ClusterState:
     homed: tuple[bool, ...]
     home_outcomes: tuple[HomeOutcome, ...]
     controller_parameters: ControllerParameters
+    diagnostics: tuple[PrismDiagnostics, ...] | None = None
 
 
 class ClusterControl:
@@ -95,18 +97,28 @@ class ClusterControl:
             raise MazeException(f"cluster {self.cluster_address} did not respond over Ethernet")
         return self.read_state()
 
-    def read_state(self) -> ClusterState:
+    def read_state(self, *, include_diagnostics: bool = True) -> ClusterState:
         """Read all status that the GUI presents to the operator."""
         positions_mm = tuple(self._hmi.read_positions_cluster(self.cluster_address))
         homed = tuple(bool(value) for value in self._hmi.homed_cluster(self.cluster_address))
         home_outcomes = tuple(self._hmi.read_home_outcomes_cluster(self.cluster_address))
         controller_parameters = self._hmi.read_controller_parameters_cluster(self.cluster_address)
+        diagnostics = (
+            tuple(self._hmi.read_prism_diagnostics_cluster(self.cluster_address))
+            if include_diagnostics
+            else None
+        )
         return ClusterState(
             positions_mm=positions_mm,
             homed=homed,
             home_outcomes=home_outcomes,
             controller_parameters=controller_parameters,
+            diagnostics=diagnostics,
         )
+
+    def read_positions(self) -> tuple[int, ...]:
+        """Read only the positions for lightweight live display updates."""
+        return tuple(self._hmi.read_positions_cluster(self.cluster_address))
 
     @staticmethod
     def home_succeeded(state: ClusterState) -> bool:
@@ -151,7 +163,7 @@ class ClusterControl:
             raise MazeException("home command was not accepted")
 
         deadline = self._monotonic_fn() + self.settings.home_timeout_s
-        last_state = self.read_state()
+        last_state = self.read_state(include_diagnostics=False)
         while True:
             if self.home_succeeded(last_state):
                 # Firmware zeroes positions immediately before publishing its
@@ -168,7 +180,7 @@ class ClusterControl:
                     f"last outcomes: {self._home_outcomes_text(last_state)}"
                 )
             self._sleep_fn(self.settings.home_poll_interval_s)
-            last_state = self.read_state()
+            last_state = self.read_state(include_diagnostics=False)
 
     def move_all(self, positions_mm: Any) -> None:
         """Send all seven target positions after validating the operator input."""

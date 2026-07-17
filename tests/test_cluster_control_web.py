@@ -4,7 +4,11 @@ import asyncio
 
 import pytest
 
-from hex_maze_interface.hex_maze_interface import ControllerParameters, HomeOutcome
+from hex_maze_interface.hex_maze_interface import (
+    ControllerParameters,
+    HomeOutcome,
+    PrismDiagnostics,
+)
 
 
 class FakeInterface:
@@ -13,6 +17,7 @@ class FakeInterface:
         self.positions = (0,) * 7
         self.homed = (False,) * 7
         self.outcomes = (HomeOutcome.NONE,) * 7
+        self.diagnostics = (PrismDiagnostics.from_wire(0x01, 0x80, 0, 0, 0),) * 7
 
     def communicating_cluster(self, cluster_address: int) -> bool:
         return cluster_address == 10
@@ -25,6 +30,11 @@ class FakeInterface:
 
     def read_home_outcomes_cluster(self, cluster_address: int) -> tuple[HomeOutcome, ...]:
         return self.outcomes
+
+    def read_prism_diagnostics_cluster(
+        self, cluster_address: int
+    ) -> tuple[PrismDiagnostics, ...]:
+        return self.diagnostics
 
     def read_controller_parameters_cluster(self, cluster_address: int) -> ControllerParameters:
         return self.parameters
@@ -68,6 +78,11 @@ def test_browser_api_uses_local_session_and_public_interface() -> None:
 
             connected = await client.post("/api/connect", json={"cluster_address": 10})
             assert connected.status_code == 200
+            assert connected.json()["state"]["diagnostics"][0]["standstill"] is True
+
+            positions = await client.get("/api/positions")
+            assert positions.status_code == 200
+            assert positions.json()["positions_mm"] == [0] * 7
 
             velocity = await client.post("/api/max-velocity", json={"max_velocity_mm_s": 40})
             assert velocity.status_code == 200

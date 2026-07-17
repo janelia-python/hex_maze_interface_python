@@ -47,6 +47,7 @@ table { border-collapse: collapse; width: 100%; }
 th, td { padding: 0.3rem 0.45rem; text-align: left; }
 tbody tr:nth-child(odd) { background: color-mix(in srgb, CanvasText 6%, Canvas); }
 td input { margin: 0; width: 100%; }
+td:last-child { min-width: 13rem; }
 
 .actions {
   display: flex;
@@ -62,5 +63,6 @@ td input { margin: 0; width: 100%; }
 @media (max-width: 540px) {
   main { padding: 1rem; }
   th, td { padding: 0.25rem; }
-  th:nth-child(4), td:nth-child(4) { display: none; }
+  table { font-size: 0.85rem; }
+  td:last-child { min-width: 10rem; }
 }
